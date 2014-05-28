@@ -1,0 +1,48 @@
+\chapter{BLE as positioning tool}
+
+Before talking about certain details of using BLE for positioning, it is worth explaining why I think that BLE is a good candidate for indoor positioning.
+Bluetooth defines profiles as part of its specification; these are standard protocols for standard use cases.
+There is no requirement that a BLE device implements one or more of these profiles, however using a standard profile for a certain functionality increases interconnectability between devices.
+One of the standard BLE profiles is the \define{proximity profile (PXP)}\urlref{https://developer.bluetooth.org/TechnologyOverview/Pages/PXP.aspx}.
+The proximity profile allows an alert to be fired when a device loses connection, or if the \define{path loss}, the difference between transmitted power level and received power level, passes a threshold.
+In this case the path loss is used as a measure of distance.
+
+In 2013 with iOS 7 Apple introduced beacon regions.
+Using an iBeacon (a BLE beacon with a certain payload), iOS \apps can be alerted when they get in or out of range, and which distance they have to the beacon.
+This distance is based on the \define{received signal strength (RSS)}, which is closely related to path loss.
+iBeacons can not be used (at the moment) for absolute positioning, since no information is known about the absolute position of the iBeacons.
+
+\section{Techniques}
+\define{Radiodetermination}, the technique of determining a device's location, can be done in two ways.
+Either the environment can send radio signals, allowing the device to determine its own location (\define{passive positioning}), or the device can send signals that allow the environment to locate the device, possibly sending the calculated position back to the device (\define{active positioning}).
+Note that this distinction is made on how the location of the device relative to the environment is made.
+A system such as \wifi positioning is considered passive positioning, even if, after receiving the \wifi signals, a lookup on a server is needed to determine the actual location.
+
+Several properties of radio signals can be used to do radiodetermination.
+In the previous section I discussed path loss and RSS\footnote{
+    received signal strength = sending signal strength - path loss.
+    Since the sending signal strength is constant, path loss and RSS differ by a constant.
+    Even though RSS itself does not tell us much, the difference between two RSS measurements gives the same information as the difference between two path loss measurements.
+    In this report I will mostly use RSS, since this can be read directly by the receiver.
+    If needed the transmitter can be configured to broadcast its sending signal strength, to calculate path loss; in these cases this will be mentioned separately.
+}.
+Alternatively one can use time-of-flight, the fact that a longer path between transmitter and receiver means that a radio signal takes longer to reach the receiver.
+This technique is being used in GNSS.
+One can also determine the angle from which a signal was received, using radio-direction-finding.
+
+\subsection{Passive positioning}
+In passive positioning a device positions itself based on radio signals from the environment.
+In our case this means an environment with multiple BLE beacons that transmit at a regular interval
+
+
+
+There are other methods how radio waves can be used to determine a position, for instance using time-of-flight (GNSS use this method), or radio-direction-finding.
+These methods could possibly be used for BLE location 
+
+
+If a beacon's sending power is known, one can easily calculate the path loss if the RSS is measured; if the sending power is not known, it can be assumed to be constant, and the path loss and RSS differ by a constant value.
+Since 
+
+ and, indirectly, on RSS (path loss is send power - RSS, so assuming send-power is constant, these two give the same information).
+
+If we assume that a positioning system based on BLE is technologically possible (all architectures proposed here assume that we can infer some data about our position by examining the path loss between the 

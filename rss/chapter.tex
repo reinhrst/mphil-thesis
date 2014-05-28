@@ -1,0 +1,165 @@
+\chapter{Received Signal Strength}
+
+\input{rss/wordcount.tex}
+
+When a wireless signal moves in empty space, we can use the received signal strength (RSS) (or more precisely the loss of signal strength, or path loss) to determine the distance between sender and receiver.
+The signal power decreases quadratically with distance; because the RSS is measured in decibel, a logarithmic scale, this means that every doubling of distance leads to a signal that is approximately 6dB weaker.
+When the signal strength from the sender is known (either because this is hard-coded into the receiver, or because the sender transmits its transmit power as part of the advertising packet), the distance to the sender can be calculated.
+Even if the transmit power is not known, comparison of two signals reveals how much closer one measurement was to the sender compared to the other one.
+Therefore the RSS is a good property to use to determine position in an ideal environment.
+
+In practical indoor positioning situations, there are however a number of factors that greatly influence the RSS, which have to be taken into account if RSS is to be successfully used for positioning.
+In this chapter I discuss several, and show results from measurements investigating the issue.
+Unless mentioned otherwise, the measurements were done using a CSR BLE beacon as transmitter, and an iPhone 5 and an iPhone 5S on iOS 7 as receivers.
+The CSR beacon is a typical BLE beacon that may be deployed in indoor BLE positioning networks.
+The iPhones were chosen because smartphones are the typical devices on which one would like to do BLE positioning.
+
+\section{Three advertising channels, three frequencies}
+
+\fig{\gnuplot{rss}{channels}{BLE frequency, with three advertising channels}}
+
+\fig{\gnuplot{rss}{frequency-difference}{Received Signal Strength (RSS) for individual channels during a measurement, in an obstruction free environment}}
+
+Bluetooth Low Energy uses 40 channels, each 1MHz wide, in the 2.4GHz spectrum\citep{bluetooth41spec}\footnote{I refer to the Bluetooth 4.1 specification, since it is the newest at the time of writing, however the Bluetooth 4.0 and Bluetooth 4.1 specification do not differ on items of interest to this research.}.
+Channels 0-36 are used for BLE connections, while channels 37, 38 and 39 are exclusively for advertising (figure \ref{fig:rss-channels}).
+The most logical way to implement BLE positioning is using the advertising channels, because that way no connection will have to be made\footnote{Apple's iBeacon uses the advertising channels, however the BLE proximity profile (PXP) uses the data channels. PXP is not used for general positioning though, but is about proximity to a specific object, in which case having a connection to it makes sense. It would be possible to build a general positioning system using connections and data channels, however there is no advantage in it.}.
+As figure \ref{fig:rss-channels} shows, the advertising channels 37, 38 and 39 are distributed though the spectrum; this was done to ensure that at least one of these channels will be free in a situation with lots of radio noise.
+The difference in frequency between the extremes, channel 37 and 39, is 78MHz; this difference in frequency has an effect on the RSS.
+
+An antenna and other analogue parts of the transmitter and the receiver will typically be optimised for one frequency, and figure \ref{fig:rss-frequency-difference} shows that, even though the transmitter reports the same transmission power for each frequency, there are differences for reported RSS by the receiver.
+Note that this measurement was done in an open environment, with the receiver and transmitter facing one another; I attribute these differences exclusively to the design of the analogue components in the transmitter and receiver.
+Later in this chapter I show that in other situations, the different frequencies have even larger effects.
+
+\subsection{Smartphone support}
+A typical device can only send or receive on one channel at any time.
+The Bluetooth 4.1 specification \citep{bluetooth41spec} specifies that the transmitter broadcasts the same advertising packet on (a subset of) channels 37, 38 and 39, each next channel's transmission beginning less than 10ms after the previous channel. 
+No such requirement is put on receivers, and they may use their own strategy to decide when to listen to which channel.
+
+
+During the research I had 4 smartphones in my possession; the limited tests I did with them should in no way be considered a comprehensive research into how smartphones listen at the different channels, it does help to illustrate the differences between the phones' capabilities.
+\begin{itemize}
+    \item \emph{iPhone 5 and iPhone 5S on iOS 7}: Both work in the same way.
+        Listening starts at channel 37 for $\sim$40ms, then channel 38 for $\sim$40ms, then 39 for $\sim$40ms, before cycling back to channel 37, cycling through all three channels in 115ms.
+        After $\sim$170 cycles of this, 21 seconds of listening, there is a small period of not listening between each channel switch, meaning all three channels get cycled in 180ms.
+        After another $\sim$500 cycles, 111 seconds after listening starts, the period of not-listening is increased so that a full cycle through all three channels takes 890ms.
+        I believe this is being done in an effort to save battery during long-running scans.
+        A program can restart BLE scanning, and the process above restarts, so restarting BLE scanning every 20 seconds results in a continuously high scan rate.
+        iOS has extended the Bluetooth specification, by also returning the channel on which an advertising packet was received.
+    \item \emph{Google Nexus 4 on Android 4.4.2}: Android does not return the channel on which an advertising packet is received. 
+        Using beacons that only advertise on a single channel, it was still possible to infer information on the channel the phone was listening to at any moment.
+        The information received shows no particular pattern in channel selection, where a packet received on channel 38 could be followed by one on channel 39, followed again by one on channel 38 all within a couple of milliseconds according to the system clock.
+        It may be that the radio is jumping around between frequencies, or (more likely) that the timestamp reported for an advertising packet is not accurate enough to distinguish the radio jumps, in which case we can't draw any conclusions about radio switching behaviour.
+    \item \emph{Samsung S4 on Android 4.3 and 4.4.2}: On Android 4.3, the phone slowly cycles between channels, a full cycle between all channels taking $\sim$ 600ms.
+        After upgrading to Android 4.4.2, the phone exhibited the same behaviour as the Nexus 4.
+\end{itemize}
+        
+\section{\Mpi}
+\label{sec:rss-mpi}
+In a typical indoor environment, wireless signals will be obscured by, and reflect off, walls, objects and persons.
+As a result the same signal travels from the transmitter to the receiver along different paths.
+This phenomenon is known as \mpp.
+
+\fig{\gnuplot{rss}{mpi-combine-channels}{Received signal strength at different distances to a transmitter}}
+
+\fig{\gnuplot{rss}{mpi-split-channels}{Received signal strength at different distances to a transmitter, split out per channel}}
+
+One of the ways how \mpp can have an influence on RSS, is through \mpi.
+\Mpi occurs when a signal propagates via two paths, to be received in the same point.
+Depending on the length difference of the two paths, the two signals may strengthen or weaken one another (theoretically making it possible for them to cancel one another out completely).
+
+To explore this effect I built a device that very slowly drags a receiver (an iPhone 5) away from a transmitter (CSR BLE beacon), while the pulled distance and the RSS are constantly being measured.
+Figure \ref{fig:rss-mpi-combine-channels} clearly shows the drops and peaks in the signal that can be attributed to \mpi, however at most distances hugely different RSS values are measured.
+Figure \ref{fig:rss-mpi-split-channels} shows the RSS split out by channel, and here we can see that within each channel, the RSS is fairly constant for one location, and each channel shows its own \mpids.
+Running the experiment multiple times resulted in the same patterns on every run.
+That the \mpids are at different locations depending on the channel is to be expected, since the location of these \mpids is dependent on the wave length, thus on the radio frequency.
+
+\fig{
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{mpi-single-rss-10mm}{1cm}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{mpi-single-rss-100mm}{10cm}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{mpi-single-rss-400mm}{40cm}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{mpi-single-rss-1000mm}{100cm}{0.55}
+    \end{subfigure}
+    \caption{Using average, maximum and median strategies to determine RSS, using different distance intervals}
+    \label{fig:rss-mpi-single-rss}
+}
+
+To do positioning based on RSS, we need a single value for the RSS, with the most important thing not being the absolute RSS value, but the property that the RSS decreases with distance, ideally with 6dB when the distance doubles.
+Figure \ref{fig:rss-mpi-single-rss} shows several strategies we may employ to come to a single RSS value in an environment with \mpi.
+I take averages, the median and the maximum of the received data, over different distance intervals, and compare this to an ideal RSS line.
+I do not take the channel number into account in this process, meaning that it can be done in devices that do not report the channel number for received packets.
+Since the absolute RSS is not important, the ideal RSS line can be shifted up or down, to either fit the average/median data, or the maximum.
+It should be noted that when doing positioning, one can typically not choose a distance interval to average over, since speed information is not easily available, and the user might stand still or walk around, so one should choose a time-interval, and select a strategy that works best in multiple distance cases.
+Figure \ref{fig:rss-mpi-single-rss} shows that both average and median follow one another very closely, with sometimes one and sometimes the other being closer to the ideal line, whereas the maximum fits less nicely.
+In addition the maximum is vulnerable to extreme values; my suggestion is to go with either the average or the median.
+
+
+\fig{\gnuplot{rss}{mpi-feasibility}{Effect of a small lateral shift of the receiver and small changes in the environment on the RSS}}
+
+It is tempting to try to use the \mpids to improve on positioning via RSS.
+For instance, if channel 37 has an RSS of -63dB, channel 38 -50dB and channel 39 -46dB, one could use the information from figure \ref{fig:rss-mpi-split-channels} to find a distance of 1.3m.
+One of the challenges here is that the \mpids are very local, and to create fingerprints for a whole room, measurements have to be taken every couple of centimetres at least in al three dimensions.
+To illustrate this, figure \ref{fig:rss-mpi-feasibility} shows in purple the original measurements, and in red the measurements taken with the receiver shifted 4cm laterally to the drag direction.
+There is some correlation between the signals, however we also see many drops happen at different places, or only in one of the signals.
+Even if such a map had been made however, \mpi is dependent on the environment, and even small changes in the environment (movement of objects or people), may invalidate a map.
+Figure \ref{fig:rss-mpi-feasibility} shows this effect, purple is the base measurement, blue the measurements after some small changes in the environment are made.
+Again we see some similarities, but also a lot of differences.
+These two effects mean that simply creating a map of an environment, even for an environment with just small changes, is not feasible, unless additional techniques are developed to combat the described problems.
+
+One area in which I believe one could take advantage of \mpi, is in speed estimation.
+If one is able to distinguish the channel a packet arrived at (either because the receiving OS supports this (i.e.\ iOS), because it is known that a certain beacon only transmits on a certain channel, or because a beacon transmits a slightly different packet on each channel\footnote{This is probably in breach of the Bluetooth specification, however since the beacon can be seen as three different beacons, each advertising on a single channel, the breach will not result in any incompatibility. I have however not found any system that allows one to broadcast a different package on each channel.}), the time between the start and the end of a \mpid could possibly be used to determine the speed of movement, since, as figure \ref{fig:rss-mpi-split-channels} shows, a single drop is usually between 5 and 15cm wide.
+Whether this is feasible is an area for further research.
+
+\section{Direction of measurement}
+\label{sec:rss-rot}
+
+The direction in which a user is facing, while using a smartphone to position, also has an influence on the RSS.
+This is for two reasons.
+First, the phone itself: rotating the iPhone leads to the antenna being more or less aligned with the signal, and leads to certain parts of the phone blocking the radio signal.
+Second, the user's body may either block or reflect the signal, leading to signal gain or loss.
+
+\fig{\gnuplot{rss}{rot-grass}{Rotation of the receiver, with and without body shadow}}
+
+To explore these effects I built a device to rotate the phone around its axis.
+Using the built-in compass, the rotation was recorded together with the RSS.
+Figure \ref{fig:rss-rot-grass} shows in red the average RSS per 0.5 second, plotted against the direction the phone is facing.
+0\textdegree{} means that the back of phone is the facing the beacon, while at 180\textdegree{} the screen if facing the beacon.
+This test was done outside in an open area, where there were few reflections.
+Since on the iPhone 5 the \wifi/Bluetooth antenna is mounted against the back of the phone, next to the camera and flash\urlref{http://www.ifixit.com/Guide/iPhone+5+Wi-Fi+Antenna+Replacement/10897}, I expect reception to be best with that side facing the transmitter.
+Figure \ref{fig:rss-rot-grass} shows that both with the back and with the screen facing the beacon, we see optimal reception of -63dB.
+Reception generally stays above -70dB, however at two points, around 120\textdegree{} and 240\textdegree{} there are large drops to around or even under -80dB, resulting in an RSS difference of 15dB in just 15\textdegree{}, and a 20dB difference throughout the whole rotation.
+These plotted values are already averages, the extremes on different channels are even larger.
+
+The blue points show the same rotation, but now with a human body 30cm in front of the screen at all time.
+This means that at 0\textdegree{}, the phone is between the body and the beacon, while at 180\textdegree{}, the body is between the beacon and the phone.
+The effect of the body is clearly visible, shadowing the signal, resulting in a 20dB drop when between the phone and the beacon, while resulting in a slight boost of the signal when the back of the phone faces the beacon, possibly because of the reflection of the signal by the body.
+Also in this case we see 20dB+ drops in the signal strength within a couple of degrees in many spots.
+
+\fig{
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{rot-sw02}{Indoor mostly open room}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{rot-corridor}{Indoor corridor}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{rot-sw02-nolos}{Indoor different room}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{rot-cove}{Indoor cluttered environment}{0.55}
+    \end{subfigure}
+    \caption{RSS under rotation, with and without a body present, in different environments.}
+    \label{fig:rss-rot-environments}
+}
+
+Figure \ref{fig:rss-rot-environments} shows the same experiment in other environments, becoming ever more cluttered from (a) to (d).
+In general the same patterns as in \ref{fig:rss-rot-grass} are visible, that at 180\textdegree{} the body casts a shadow on the reception, while at 0\textdegree{} a slight boost of signal can be seen when there is a body behind the device.
+The effect is generally smaller than in an environment with no reflections, and the differences between the graphs show that it will be hard to predict the effect in an arbitrary environment.
+All environments show some drop locations, where the RSS drops by 10-20dB within a couple of degrees.
+

@@ -1,0 +1,32 @@
+SHELL=/bin/bash
+PLOTS_SRC=$(wildcard *.gnuplot)
+PLOTS_EPS=$(PLOTS_SRC:.gnuplot=-gnuplot.eps)
+PLOTS_TEX=$(PLOTS_EPS:.eps=.tex)
+FULL_DIR=$(shell pwd)
+CURRENT_DIR=$(shell basename $(FULL_DIR))
+
+.PHONY : plots show cleanup clean
+
+%-gnuplot.tex: %.gnuplot
+	echo "set terminal epslatex color; set output '$@';" | cat - $< | gnuplot
+	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
+
+prepare: wordcount
+
+wordcount:
+	@echo "Words: " > wordcount.tex
+	@texcount chapter.tex | Grep 'Words in text' | grep -oE '[0-9]+' >> wordcount.tex
+
+show:
+	gnuplot <(echo ";pause -1;" | cat $(PLOT) -)
+
+cleanup: clean
+
+clean: localclean
+	rm -f *-gnuplot.{eps,tex}
+	rm -f *-gnuplot-eps-converted-to.pdf
+	rm -f chapter.aux
+	rm -f wordcount.tex
+
+localclean:
+

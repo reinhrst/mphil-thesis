@@ -1,0 +1,77 @@
+\chapter{BLE positioning in practice}
+\label{chap:architecture}
+
+\wordcount{architecture}
+
+Much research has been done on positioning using \wifi signals (ref: RADAR, EWKNN, etc), and many current \devices use the \wifi positioning system (WPS) to augment the GPS, or in places where GPS is not available.
+WPS is based on measuring the signal strength of access points, and comparing these values with known values for different locations in the area.
+The known values can be calculated using ray-tracing (RADAR), or can be surveyed at some earlier point in time.
+The surveying for WPS was initially done from cars, and although this method of data collection still happens, manual submissions and usage of the system also feed surveying information back into the system\urlref{http://www.skyhookwireless.com/location-technology/coverage.php}.
+
+It is important to differentiate between two types of location determination: \define{one-shot positioning}, where a single measurement is used to determine one's location, and \define{tracking}, where a set of measurements over time is used.
+Tracking will obviously lead to higher accuracy, since the measurements can be related over time through business rules; for instance, when indoors it is unlikely that two measurements taken 1 second apart, were taken at more than three meters apart.
+As another example, the algorithm may infer on which side of the road a \device is most likely to be, if it is moving along a road at a speed higher than cycling speed.
+Even though most real-life applications are interested in tracking rather than one-shot positioning, a good one-shot algorithm is an essential basis for a tracking algorithm.
+
+There is some research exploring using Bluetooth classic (not Low Energy) for positioning(refs); as chapter \ref{blepositioning} explains, Bluetooth Low Energy is a different protocol, which differs in many ways from Bluetooth classic, also on radio properties.
+Even though the BLE PXP profile and iBeacons describe some sense of location awareness using BLE signals, they do not allow for absolute positioning.
+I am also not aware of any academic papers describing positioning using BLE.
+
+In this chapter I explore different strategies for positioning using BLE.
+In addition to using the same methods that are being used for \wifi positioning, I propose, on the basis of the BLE radio propagation properties described in \chapterref{rss}, an improved BLE positioning algorithm: \BRP.
+This improved algorithm performs 50\% better than the \wifi positioning algorithms.
+
+\section{RSS based positioning}
+There are multiple techniques for positioning using radio signals, such as Time-Of-Arrival (TOA), Angle-Of-Arrival (AOA) as Received Signal Strength (RSS).
+No mainstream \devices have support for TOA or AOA for \wifi or Bluetooth Low Energy signals; they do all report RSS for \wifi and BLE signals\footnote{RSS for \wifi signals in iOS can only be retrieved by the positioning process in the OS itself, third party \apps do not have direct access to this data on not-jailbroken devices.}.
+
+\citet{bahl2000radar} laid the foundation for positioning using \wifi signals.
+The basis is a fingerprint database, containing fingerprints (the RSS, or RSS distribution, for each access point) for a large number of locations.
+This database can either be filled empirically, surveying the RSS at each location; or calculated, where the RSS at each location is estimated using the positions of the access points and a radio propagation model for the environment.
+The paper shows that empirically filling the database leads to better results, however it may take much longer since a manual survey of each location is needed.
+
+To do positioning, a measurement of the RSS of each access point at an unknown location is made, and each fingerprint in the database is compared to this measurement in order to find one or multiple close matches.
+The method mostly used to find a match is (a variant of) k-nearest-neighbour.
+The method works in three steps.
+Firstly the set of measured RSSs are transformed to a single RSS per access point for the measurements, and a single RSS per access point per location in the database; this latter part is usually done just once, during the surveying, but it may be beneficial to do this during the positioning step.
+\citet{bahl2000radar} describes that the mean, standard deviation and median of multiple measurements at a single location was calculated, but only uses the mean in the rest of the paper.
+
+Secondly the measured RSS is compared to that for all surveyed points, and the signal distance between the two points is calculated by a distance-function $L$.
+The usual choice for the distance-function (and hence the name) is to calculate the distance in signal-space, where each signal-source is a dimension.
+\citet{li2005method} described a generalised distance function
+\begin{equation}
+    L_q = \left(\sum_{i=1}^{n}|s_i-S_i|^q\right)^{\frac{1}{q}}
+    \label{eq:architecture-distance}
+\end{equation}
+, where $n$ is the number of signal-sources, $s_i$ the measured RSS for a source, and $S_i$ the surveyed RSS at the point to which the distance is to be calculated; different $q$ lead to different distance functions with $L_1$ being the Manhattan distance, and $L_2$ the Euclidean distance.
+There seems to be no clear consensus on which $q$ gives the best result, with \citet{shin2012enhanced} using $L_1$, \citet{bahl2000radar} using $L_2$, only saying that alternatives (possibly also of another form) were briefly experimented with, and \citet{li2005method} using $L_1$, while noting that the difference with other $q$ values is not significant.
+Most methods use the $L_q$ function with the $s_i$ in dB, \citet{li2005method} explores whether the $s_i$ should alternatively use the power $P$, $1/P$, $1/P^2$ or $1/P^4$, concluding that dB works the best, but $1/P^2$ and $1/P^4$ also give good results.
+
+Finally the calculated distances are being used to map to a position.
+\citet{bahl2000radar} uses both a 1-nearest-neighbour and a k-nearest-neighbour approach, showing that the second works better (although only slightly due to some choices they made in the rest of the algorithm).
+\citet{li2005method} uses a weighted-k-nearest-neighbour approach, where the nearest neighbours are being weighted by the result of the distance-calculation, and \citet{shin2012enhanced} introduced using a dynamic value for the number of neighbours $k$ to further improve the result.
+
+\section{Experiment}
+\fig{\gnuplot{architecture}{room}{Test bed: room SW02 in the Computer Laboratory of the University of Cambridge.}}
+Room SW02 in the Computer Laboratory of the University of Cambridge is the test bed for this experiment.
+The room consists of a square 12 by 12 meter main area, with several coves.
+The room contains four decagonal-shaped tables with computers on them and chairs around them, as well as some other furniture.
+Twenty BLE beacons were used, ten on the walls of the room, eight on the tables, one in the middle and one placed a couple of meters outside the room (\figureref{architecture}{room}).
+The beacon positions were chosen such that all areas would receive BLE signals, but no specific action was taken to find optimal positions.
+Each beacon sends a single advertising packet, a unique beacon ID, on all three advertising channels every 100 ms; the transmitting power of a single beacon stays the same over its lifetime.
+All measurements were done on a 60 by 60 cm grid, since this is the size of the floor tiles.
+
+During the surveying phase, each accessible point on the grid is surveyed, by slowly moving the \device along a circle with a radius of 15 cm centred on the grid point, the back of the phone facing outwards, with a human body on the opposite side of the circle, facing the screen; the normal position for a user using the \device.
+For each advertisement packet received, the beacon ID, advertising channel, RSS and the current heading as reported by the \devicepos compass, is saved.
+Complete 360\textdegree{} survey took between 3.5 and 15 seconds for each of the 226 accessible points, with an average of 9 seconds per point.
+On average 903 advertising packets were captured per point\footnote{With each of the twenty beacon advertising on all three channels at 10 Hertz, $3 \times 10 \times 20 = 600$ advertisements per second are broadcast. Since a \device only listens at one channel at a time (quickly switching between the three channels), a maximum of 200 advertisements per second can be received. Because of the time needed for switching between the channels, and collisions of packets, I consistently received around 100 advertisements per second on my \device.}.
+
+During the positioning phase, a test subject was asked to go to a particular grid point, stand still while holding the phone ``naturally'', with the phone held still over the grid point, and log the beacon ID, advertising channel, RSS and current heading for each packet received for two seconds.
+On average 200 packets were received per measurement, and each accessible point was visited three times\footnote{Some points on the side of the room were actually only visited twice, however this doesn't influence the results.}.
+
+In addition the $x$, $y$ and $z$ coordinates for each beacon were determined.
+
+The measured data allows us 
+
+\section{Positioning methods}
+

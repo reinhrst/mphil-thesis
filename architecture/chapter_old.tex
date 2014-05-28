@@ -1,0 +1,211 @@
+\chapter{BLE positioning in practice}
+\label{chap:architecture}
+
+\wordcount{architecture}
+
+Much research has been done on positioning using \wifi signals (ref: RADAR, EWKNN, etc), and many current \devices use the \wifi positioning system (WPS) to augment the GPS, or in places where GPS is not available.
+WPS is based on measuring the signal strength of access points, and comparing these values with known values for different locations in the area.
+The known values can be calculated using ray-tracing (RADAR), or can be surveyed at some earlier point in time.
+The surveying for WPS was initially done from cars, and although this method of data collection still happens, manual submissions and usage of the system also feed surveying information back into the system\urlref{http://www.skyhookwireless.com/location-technology/coverage.php}.
+
+It is important to differentiate between two types of location determination: \define{one-shot positioning}, where a single measurement is used to determine one's location, and \define{tracking}, where a set of measurements over time is used.
+Tracking will obviously lead to higher accuracy, since the measurements can be related over time through business rules; for instance, when indoors it is unlikely that two measurements taken 1 second apart, were taken at more than three meters apart.
+As another example, the algorithm may infer on which side of the road a \device is most likely to be, if it is moving along a road at a speed higher than cycling speed.
+Even though most real-life applications are interested in tracking rather than one-shot positioning, a good one-shot algorithm is an essential basis for a tracking algorithm.
+
+There is some research exploring using Bluetooth classic (not Low Energy) for positioning(refs); as chapter \ref{blepositioning} explains, Bluetooth Low Energy is a different protocol, which differs in many ways from Bluetooth classic, also on radio properties.
+Even though the BLE PXP profile and iBeacons describe some sense of location awareness using BLE signals, they do not allow for absolute positioning.
+I am also not aware of any academic papers describing positioning using BLE.
+
+In this chapter I explore different strategies for positioning using BLE.
+In addition to using the same methods that are being used for \wifi positioning, I propose some new methods 
+
+The previous chapter shows many of the radio propagation properties of a Bluetooth Low Energy signal, and compares these to \wifi.
+In this chapter I introduce an algorithm to do positioning based on BLE beacons which recognises this behaviour of the signal, and compare this algorithm against the algorithms used for \wifi positioning.
+I show that taking into account this behaviour improves the accuracy of the positioning in my test-setup by 50\%.
+
+\section{Off-line surveying and database}
+
+In order for a \device to position, it compares the measured RSS to values in a database.
+In this model three questions need to be answered: how is the database filled; how does the \device access the information in the database; and how are the measured values are related to valued in the database.
+The third question will be answered in the next sections and make up the bulk of this chapter; the first two questions I deal with in this section.
+
+\citet{bahl2000radar} described two methods to fill the database; either empirically, by measuring the RSS at different locations, or calculating the RSS at different locations by using a radio propagation model.
+The paper describes that the empirical model leads to better result, at the cost of a higher set-up cost. 
+An additional problem is that the radio propagation method has numerous parameters to get right.
+In this report I use both methods with the algorithm described in the following sections, and show that even though I chose a very simple radio propagation method, the results are quite good.
+
+The second question is how the \device has access to the database.
+Although this doesn't influence the results of the positioning, it is interesting to consider, especially in the light of chapter \ref{chap:security} on privacy and security.
+The database size depends on the area that is being mapped, around 20 bytes per $m^2$ gives a fair estimation\footnote{Assume a $10,000m^2$ area that we want to map.
+    I assume a compact data format, which starts with a list of beacons, and then surveyed information, one survey point per meter, 10,000 survey points in total.
+    This results in 10,000 data points, for each I'll store the RSS of the 20 \begin{em}closest\end{em} beacons.
+    Since the coordinates for all beacons are known, and the coordinates for each surveyed point are known, the \device can calculate the 20 closest points.
+    The RSS was returned by all test devices as signed 8-bit value; some space could be saved by recognising that the interesting values for RSS all lie within a 6-bit range, but 8 bits will give us a good idea of size.
+    This means that per beacon 8 bytes (2 byte beacon-ID and 2 bytes per coordinate) are needed, and per measurement point $20 \times 1 byte$.
+    Assuming a beacon every 5 meters, 400 in total, the map will be $some overhead + 400 \times 8 + 10,000 \times 20 \times 1 \approx 200 kilobyte$, which results in about 20 bytes per $m^2$.
+    It should be noted that the survey resolution of one measurement per $m^2$ may be too low or high (\citet{bahl2000radar} suggests that a lower resolution may perform only a bit worse), or that the 20 closest beacons are too many or too little, but this gives at the least an idea for the size of the map.
+}, resulting in about 50 kilobyte for the average Tesco Superstore\urlref{http://www.tescoplc.com/files/pdf/results/2014/prelim/prelim_2013-14_analyst_pack.pdf}, up to 1 megabyte for large museums such as the British Museum or le Louvre.
+
+\subsection{Global beacon database}
+\Wifi positioning is based on a global database (more precisely multiple competing global databases), maintained by commercial parties such as Skyhook and Google.
+The data from this database comes from surveying outside (for instance with Google Streetview cars), and is updated by manual submissions and by use \urlref{http://www.skyhookwireless.com/location-technology/coverage.php}.
+Building something similar for BLE encounters many problems: BLE peripherals (the ones that do the advertising) don't have a fixed address, and they may change their ID or advertisement message often.
+In addition many BLE peripherals are mobile, carried around by people.
+As a result such a database would need to only contain BLE beacons\footnote{There is no standard for a BLE beacon, but something very similar to an iBeacon would make sense: a fixed string identifying that it's a beacon, and then an ID.}. 
+BLE beacons typically have a limited range, and may not be noticed when driving around outside.
+Finally there may be a chicken-and-egg problem: unlike \wifi access points, BLE beacons have only one goal, which is positioning, and they will not be installed until the database to use them is there.
+The database however only makes sense with a critical mass of BLE beacons.
+
+If these problems were solved (either because companies would manually enter their beacon positions into the database, or through better scanning techniques), and everybody agreed on this standard, a BLE positioning system similar to the \wifi positioning system, could work.
+Because of its size, downloading the full database would only be feasible in certain situations, and most of the time positioning would be done by sending the measured RSS to the cloud, and getting back a position.
+Ideally such a database would be open for anyone to use, so that BLE positioning would work in any application.
+
+\subsection{In-\app beacon database}
+In stead of having a global database with all BLE fingerprints, this information can be available on the phone itself.
+Typically the company using the building could provide an \app with navigation support for that building (e.g.\ Tesco releasing a Tesco \app, which allows navigation inside Tesco supermarkets).
+In this case there is no chicken-and-egg problem, the same organisation provides the beacons, the database and the navigation \app.
+Another advantage of this system is that no internet connection is needed to do the positioning: since the database and the maps are already on the phone, positioning and navigation is possible places without cellular coverage or for those who do not wish to use a cellular data connection.
+Navigation happens in a proprietary \app though,that needs to be installed before, and will not be available in general applications, such as Google maps.
+This method also has increased privacy concerns, that I discuss in chapter \ref{chap:security}.
+Finally this method may result in an out-of-date database; \citet{moller2012update} showed that only 50\% of Android users install a new \app version within 7 days, and 25\% has not updated even after 3 months; another method for updating the database then updating the \app may be needed, but this may lead to its own problems.
+
+\subsection{On-beacon beacon database}
+A third option is to have the fingerprint database and the indoor map on the beacons themselves, preferably in an open format.
+Since advertising packets themselves can only contain 31 bytes of information (this includes the beacon ID), a phone would have to make a connection to a beacon to download the database and map.
+In some quick experiments, I found a sustained BLE data transfer rate of 8KByte/second, meaning that a small database and map can be downloaded in seconds\footnote{Larger maps could possibly be downloaded in parts, or by switching to a higher bandwidth system, such as Bluetooth ER, or \wifi. A switch to another connection may require user interaction on some systems though, notably in iOS.}
+The beacon database and indoor map can be picked up by any \app that understands the format, and no internet connection is required.
+Extra care does have to be taken that all beacons have the same up-to-date version of the database, and because beacons are connected to and send out more data, their battery life will decrease.
+
+It should be noted that this technology can be extended beyond just mapping, such as giving up-to-date information in maps (which check out registers or theme park rides are not busy, where can I find the next bus to Cambridge, etc), or to replace signs (menu-of-the-day, wifi-password, opening hours or latest offers). 
+
+\section{Positioning}
+
+\fig{
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{architecture}{heatmap-f}{beacon 0x0f}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{architecture}{heatmap-3}{beacon 0x03}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{architecture}{heatmap-11}{beacon 0x11}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{architecture}{heatmap-5}{beacon 0x05}{0.55}
+    \end{subfigure}
+    \caption{RSS for different beacons measured while surveying}
+    \label{fig:architecture-heatmaps}
+}
+
+I run my experiments in a room in the Computer Laboratory of the University Of Cambridge\footnote{Room SW02, William Gates Building, 15 JJ Thomson Avenue, Cambridge}.
+This room is mostly rectangular, 12 by 12 meters, with several coves to the sides.
+The room contains four decagonal-shaped tables with computers on them and chair around them, as well as some other furniture.
+All measurements are done on a 60 by 60 centimetre grid.
+Twenty beacons were used in the experiments, ten on the walls of the room, eight on the tables, one in the middle, and one placed a couple of meters outside the room, each beacon send advertisements on all three channels with a frequency of 10 hertz.
+
+First the room was surveyed; at each location I measured the RSS in all directions, and found for each beacon the maximum RSS at a location.
+Figure \ref{fig:architecture-heatmaps} shows the RSS for some beacons at different locations.
+Afterwards I did multiple short measurements while standing still at each location.
+Both surveying and the short measurements were done with the same device, the complications of this are discussed in section \ref{sec:architecture-discussion}
+
+\subsection{Positioning with BLE}
+Doing positioning with BLE has several advantages and disadvantages compared to positioning using \wifi.
+BLE beacons can be small, cheap and tenths or hundreds can coexist in the same area.
+A BLE beacon can also run for a considerable time on a single battery.
+These two properties mean that deploying BLE beacons in large numbers, also in places where no power socket is available, is easier than with \wifi access points.
+More beacons generally mean better positioning results.
+On the other hand, chapter \ref{chap:rss} shows that BLE is more susceptible to RSS fluctuations than \wifi, which complicates positioning.
+Running beacons on batteries also means there is a risk that a beacon may die.
+Beacons may also be placed in more accessible locations than \wifi access points, meaning that it may be easier for a malicious or careless agent to move or remove the beacon.
+This latter point is discussed further in chapter \ref{chap:security}.
+The former points are dealt with in this chapter.
+
+
+\subsection{k-nearest-neighbour}
+\begin{comment}
+The one-shot positioning algorithm is a function that maps from a measurement $M$, using a survey database $S$ to a probability distribution over positions $P$.
+
+\begin{equation}
+M \xrightarrow{S} P
+\end{equation}
+
+Finding the position for a measurement is often done through the k-nearest-neighbour method\citet{bahl2000radar}.
+The method works in two steps: first the measured RSS is compared with the surveyed RSS for each point $s$ in the database (or a subset thereof of all plausible points), and a ``distance'' $d_{M,s}$ is calculated for each point, describing how far the measured RSS lies from the RSS surveyed at that point; second, using the distances to each point, $P$ is calculated.
+
+The first step is usually done by taking the Manhattan-distance
+\begin{equation}
+    d_{M, s)} = \sum_{b \epsilon B}|M_b-s_b|
+    \label{eq:manhattan}
+\end{equation}
+or the Euclidean-distance
+\begin{equation}
+    d_{M, s)} = \sum_{b \epsilon B}(M_b-s_b)^2
+    \label{eq:euclidean}
+\end{equation}
+on the dB values, although in many cases it is not clear what is being used.
+Most research has focussed on the second step, using the sorted list of distances to find $P$.
+\begin{equation}
+    D=\{d_0,p_0\},\{d_1,p_1\},\ldots  \quad \quad d_i \leq d_{i+1}
+\end{equation}
+
+\end{comment}
+
+Finding the position for a measurement is often done through the k-nearest-neighbour method\citet{bahl2000radar}.
+The method works in three steps.
+Firstly the set of measured RSSs are transformed to a single RSS per beacon for the measurements, and a single RSS per beacon per surveyed point, for the points surveyed previously.
+This last part is usually done just once, during the surveying, but may be optimised for each positioning.
+\citet{bahl2000radar} describes that the mean, standard deviation and median of multiple measurements at a single location was calculated, but only uses the mean in the rest of the paper.
+
+Secondly the measured RSS is compared to that for all surveyed points, and the signal distance between the two points is calculated by a distance-function $L$.
+The usual choice for the distance-function (and hence the name) is to calculate the distance in signal-space, where each signal-source is a dimension.
+\citet{li2005method} described a generalised distance function
+\begin{equation}
+    L_q = \left(\sum_{i=1}^{n}|s_i-S_i|^q\right)^{\frac{1}{q}}
+    \label{eq:architecture-distance}
+\end{equation}
+, where $n$ is the number of signal-sources, $s_i$ the measured RSS for a source, and $S_i$ the surveyed RSS at the point to which the distance is to be calculated; different $q$ lead to different distance functions with $L_1$ being the Manhattan distance, and $L_2$ the Euclidean distance.
+There seems to be no clear consensus on which is the best, with \citet{shin2012enhanced} using $L_1$, \citet{bahl2000radar} using $L_2$, only saying that alternatives (possibly also of another form) were briefly experimented with, and \citet{li2005method} using $L_1$, while noting that the difference with other $q$ values is not significant.
+Most methods use the $L_q$ function with the $s_i$ in dB, \citet{li2005method} explores whether the $s_i$ should alternatively use the power $P$, $1/P$, $1/P^2$ or $1/P^4$, concluding that dB works the best, but $1/P^2$ and $1/P^4$ also give good results.
+
+Finally the calculated distances are being used to map to a position.
+\citet{bahl2000radar} uses both a 1-nearest-neighbour and a k-nearest-neighbour approach, concluding that the second works better (although only slightly due to some choices they made in the rest of the algorithm).
+\citet{li2005method} uses a weighted-k-nearest-neighbour approach, where the nearest neighbours are being weighted by the result of the distance-calculation, and \citet{shin2012enhanced} introduced using a dynamic value for the number of neighbours $k$ to further improve the result.
+
+\subsection{Distance function}
+Even though there is some 
+In my opinion the distance function has been under-explored in the search for a good positioning algorithm.
+The distance function described in equation \ref{eq:architecture-distance} works well in a situation where a measurement at a surveyed location finds more or less the same RSS as the RSS found when surveying, and if the RSS between two surveyed locations does not fluctuate too much.
+Unfortunately BLE does not have these properties: section \ref{sec:rss-rot} shows that the orientation of the antenna can influence measurements by 20dB; the shadow of the user's body, or of other people moving around, can also influence the RSS, and section \ref{sec:rss-mpi} shows that small movements can result in large changes in RSS because of \mpi.
+As described in chapter \ref{chap:rss}, some of these effects can be mitigated by averaging over a longer period, however this assumes that the \device is moving, and requires longer measurements.
+
+
+Chapter \ref{chap:rss} shows that \mpi, orientation or people moving around mean that small changes in the location, orientation or environment can cause huge drops of up to 20dB in the RSS, the same drop that, position-wise, 
+As figure \ref{fig:architecture-heatmap} shows, this is the same as the RSS difference for a beacon between one side and the other side of the room.
+The 
+
+
+
+\section{Discussion}
+\label{sec:architecture-discussion}
+same antenna
+only in 2d
+alternatives to NN mentioned in bahl2000radar for higher dimensions
+hand-help positioning assumed
+
+\section{Alternative methods}
+\label{sec:architecture-alternative}
+\subsection{Listening beacons}
+In stead of having the phone listen for packets from the beacons, the phone instead could send advertising packets to be picked up by the beacons.
+The beacons could then use all sorts of methods (for instance time-of-flight) to determine the sender's location, and send this back (either by BLE or over the internet) to the phone, or an interested third party.
+Using something else than RSS means that the beacons may need to be more complex, probably making them more expensive, but this may be acceptable in some deployments.
+The beacons will need to collaborate to determine the phone's position, so they need to be networked (either using BLE or something else), and since they need to listen all the time, they will use more energy than the simple beacons we used above, resulting in either regular battery replacements or connection to a mains power supply.
+
+\subsection{BLE Bats and crickets}
+Positioning systems \define{Active Bat}\citep{harter2002anatomy} and \define{Cricket}\citep{priyantha2000cricket} use a combination of radio waves and ultrasound to do positioning.
+With BLE phones have the ability to do the same: a speaker and microphone for sound, and BLE allows \apps an easy way to send simple radio packets.
+Within this architecture, many strategies are possible.
+One could equip each BLE beacon with a speaker.
+The phone sees the beacon, connects to it and asks it to send an ultrasound pulse.
+There is evidence that smartphone microphones can pick-up (near) ultrasound\citep{arentz2011near,bihler2011smartguide}, but it remains to be seen if the timings in the OS are accurate enough to use this.
+A system like this requires limited alteration to the beacon hardware, although there will be a large increase in power usage for beacons that are used a lot.

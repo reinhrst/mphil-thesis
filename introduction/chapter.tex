@@ -1,0 +1,61 @@
+\chapter{Introduction}
+
+Using digital devices to find one's position has been one of the great advancements in technology in the last couple of decades, and has more recently entered the domain of personal electronics.
+At the end of 2013, it was reported that more than one in five persons owns a smartphone\footnote{\url{http://www.businessinsider.com/smartphone-and-tablet-penetration-2013-10}}, and many of these smartphones include GPS (General Positioning System) receivers.
+In addition many GPS receivers have been sold outside of smartphones, in stand alone navigation devices, or built in to larger products, such as cars.
+Since in 2000 the Selective Availability of GPS ended, the accuracy has improved to within a couple of meters\footnote{\url{http://www.gps.gov/systems/gps/modernization/sa/}}.
+More technological enhancements are possible to reduce the error into the centimeter range\footnote{\url{http://en.wikipedia.org/wiki/GPS_enhancement}}.
+The GPS system (and similar systems such as the EU's Galileo, Russia's GLONASS, India's IRNSS and China's Beidou-2 system), collectively known as \emph{Global Navigation Satellite Systems} (GNSS), have become the standard for outdoor positioning, even though mobile and wifi signals are also being used to enhance positioning performance by many devices.
+
+In addition to being available globally for free, and providing accurate positioning, GNSS have some further advantages that resulted in their wide-spread adoption.
+GNSS can be used without any additional information, meaning that devices without an internet connection (either because they don't support an internet connection, or they currently are not connected), can position using GNSS.
+The communication from satellite to positioning device is completely one way, meaning on the one hand that the system scales perfectly with additional positioning devices, on the other hand does it guarantee perfect privacy: using a positioning device can be done without anyone finding out that a device is even being used.
+Finally, GNSS have some unique security properties: even though the civilian GPS system is vulnerable to jamming and spoofing\citep{volpe2001vulnerability,grant2009gps}, countermeasures are available\citep{warner2003gps,lo2009signal}.
+In addition, the physical security to the senders is large, as disabling, stealing or tampering with a satellite would be a complex and expensive operation.
+
+The signals from GNSS satellites are weak, and usually unable to penetrate structures.
+This means that the system's use degrades considerably between high-rise buildings, and cannot be used indoors.
+In addition, indoor positioning is harder, because there are more variables; while outdoors we usually can assume that the positioning device is on ground level, indoors positioning needs to be done in all 3 dimensions.
+Finally, indoor positioning for consumer use has stricter requirements than outdoors: while outdoors an error of 10 meters can easily be spotted and corrected for by a user, indoors 10 meters can mean a different floor, or even building. 
+There has been much research into indoor positioning, e.g.\ using infra-red\citep{want1992active}, ultrasound\citep{harter2002anatomy}, a combination of ultrasound and radio-waves\citep{priyantha2000cricket} or radio-waves by themselves\citep{lorincz2005motetrack}.
+Current smartphones make use of a combination of Wifi signals, which use was pioneered by \citet{bahl2000enhancements}, and mobile signals in area where GPS is not available, or to improve GNSS positioning.
+The choice for these technologies is at least partly because both the beacon infrastructure, and the smartphone hardware to receive the signals, was already in place.
+Positioning through wifi is accurate to tens of meters in a typical urban environment\citep{zandbergen2009accuracy}, and the precision increases with the number of access points in close vicinity.
+Using mobile signals for positioning gets an accuracy in hundreds of meters.
+
+In July 2013 Apple introduced the iBeacon technology.
+An iBeacon sends Bluetooth Low Energy (BLE) packets at regular intervals, and a BLE capable device (such as an iPhone) can receive them and determine its proximity to the beacon.
+This allows for accurate absolute positioning (within a meter), but the technology is at the moment only being used to determine whether a device is close to a certain beacon; since the beacon's position itself is not known however, this technique does not improve absolute positioning.
+
+In this report I look at the possibilities for using BLE for absolute positioning, i.e.\ drawing one's position on a map, or using it for navigation.
+I explain why BLE is better suited for this than other suggested systems for indoor positioning, and discuss some of the drawbacks and pitfalls, such as the fact that BLE advertising uses three distinct channels, how to deal with multi-path interference and whether we can use these properties to our advantage.
+I show how a positioning system based on BLE beacons works in the computer lab, and how it compares to other positioning systems active in the lab.
+Finally, I discuss how a positioning system based on BLE beacons deals with privacy and security, as compared to Wifi and mobile signal positioning.
+
+
+\section{Bluetooth Low Energy}
+Bluetooth Low Energy, also known as Bluetooth Smart, or sometimes incorrectly referred to as Bluetooth 4.0, is a new wireless connection technology that is quickly gaining in popularity.
+It was introduced in 2010 as part of the Bluetooth 4.0 standard, and is widely expected to be available in billions of devices within a couple of years.
+In February 2014, out of the top 10 most sold smartphones, at least nine had BLE support\footnote{
+    \url{http://www.counterpointresearch.com/top-10-smartphones-in-february-2014},
+    \url{https://www.apple.com/iphone},
+    \url{http://www.samsung.com/global/microsite/galaxys4/},
+    \url{http://www.samsung.com/uk/consumer/mobile-devices/galaxy-note/smartphones/SM-N9005ZWEBTU},
+    \url{http://www.samsung.com/uk/consumer/mobile-devices/smartphones/android/GT-I9195ZKABTU},
+    \url{http://www.gsmarena.com/xiaomi_hongmi-5609.php},
+    \url{http://www.samsung.com/uk/consumer/mobile-devices/smartphones/android/GT-I9300MBDBTU},
+    \url{http://www.mi.com/en/mi3#fullspecs}
+}\footnote{I was unable to verify that the Xiaomi M3 supports Bluetooth Low Energy, the specs just claim Bluetooth 4.0}.
+
+\fig{\gnuplot{introduction}{ble-wifi}{Bluetooth Low Energy advertising (blue) and data (red) channels, and \wifi channels, with the much-used 1/6/11 channel combination in bold.}}
+
+BLE uses the same 2.4GHz frequency band as Wifi and classical Bluetooth, and even though many dual-use 
+
+\section{Suitability of Bluetooth Low Energy}
+- on smartphones
+- cheap deployment
+- no pairing needed
+- smaller range than wifi
+- long battery life
+- 
+
