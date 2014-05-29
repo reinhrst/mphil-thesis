@@ -4,11 +4,8 @@ do for [i=30:33] {
     unset label i
     unset object i
 }
-set object 100 circle at 32,-26 size 2 fs empty border lc rgb 'black'
-set angles degrees
-north=70
-set arrow 100 from 32-2*sin(north),-26-2*cos(north) to 32+2*sin(north),-26+2*cos(north)
-set label 100 'N' at 32+2.5*sin(north),-26+2.5*cos(north)
+
+eval(compass(32,-26,2))
 
 set yrange [-28:2]
 set xrange [-1:35]

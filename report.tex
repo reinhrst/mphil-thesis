@@ -9,6 +9,7 @@
 \usepackage{amsmath}
 \usepackage{verbatim}
 \usepackage{makecell}
+\usepackage{xspace}
 \usepackage[table]{xcolor}
 \usepackage[T1]{fontenc}
 
@@ -16,22 +17,22 @@
 \definecolor{no}{rgb}{1,0.9,0.9}
 \definecolor{maybe}{rgb}{1,1,1}
 
-\newcommand{\Wifi}{Wi-Fi }
-\newcommand{\wifi}{Wi-Fi }
-\newcommand{\apps}{apps }
-\newcommand{\app}{app }
-\newcommand{\BRP}{Blackout Resistent Positioning }
-\newcommand{\device}{smartphone }
-\newcommand{\devicepos}{smartphone's }
-\newcommand{\devices}{smartphones }
-\newcommand{\Device}{Smartphone }
-\newcommand{\Devices}{Smartphones }
-\newcommand{\mpp}{multi-path propagation }
-\newcommand{\Mpp}{Multi-path propagation }
-\newcommand{\mpi}{multi-path interference }
-\newcommand{\mpid}{multi-path interference drop }
-\newcommand{\mpids}{multi-path interference drops }
-\newcommand{\Mpi}{Multi-path interference }
+\newcommand{\Wifi}{Wi-Fi\xspace}
+\newcommand{\wifi}{Wi-Fi\xspace}
+\newcommand{\apps}{apps\xspace}
+\newcommand{\app}{app\xspace}
+\newcommand{\BRP}{Blackout Resistent Positioning\xspace}
+\newcommand{\aBRP}{BRP\xspace}
+\newcommand{\device}{smartphone\xspace}
+\newcommand{\devices}{smartphones\xspace}
+\newcommand{\Device}{Smartphone\xspace}
+\newcommand{\Devices}{Smartphones\xspace}
+\newcommand{\mpp}{multi-path propagation\xspace}
+\newcommand{\Mpp}{Multi-path propagation\xspace}
+\newcommand{\mpi}{multi-path interference\xspace}
+\newcommand{\mpid}{multi-path interference drop\xspace}
+\newcommand{\mpids}{multi-path interference drops\xspace}
+\newcommand{\Mpi}{Multi-path interference\xspace}
 \newcommand{\wordcount}[1]{
     \immediate\write18{make -C #1 wordcount.tex}
     \input{#1/wordcount.tex}
@@ -39,8 +40,11 @@
 
 \newcommand{\urlref}[1]{\footnote{\url{#1}}}
 \newcommand{\chapterref}[1]{chapter \ref{chap:#1}}
+\newcommand{\appendixref}[1]{appendix \ref{app:#1}}
 \newcommand{\figureref}[2]{figure \ref{fig:#1-#2}}
+\newcommand{\Figureref}[2]{Figure \ref{fig:#1-#2}}
 \newcommand{\sectionref}[2]{section \ref{sec:#1-#2}}
+\newcommand{\Sectionref}[2]{Section \ref{sec:#1-#2}}
 \newcommand{\equationref}[2]{equation \ref{eq:#1-#2}}
 
 

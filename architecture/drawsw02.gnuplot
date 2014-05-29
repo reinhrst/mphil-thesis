@@ -150,6 +150,7 @@ eval(beacon(14.2,-15.2,0x14,3))
 eval(beacon(20.0,-11.0,0x0f,3))
 eval(beacon(18.0,-26.0,0x01,3))
 
+compass(x,y,size)=sprintf("x=%f;y=%f;size=%f;",x,y,size) . "set object 100 circle at x,y size size fs empty border lc rgb 'black'; set angles degrees; north=70; set arrow 100 from x-size*sin(north),y-size*cos(north) to x+size*sin(north),y+size*cos(north); set label 100 'N' at x+(size+.5)*sin(north),y+(size+.5)*cos(north)"
 
 set grid
 set key left bottom
