@@ -3,7 +3,7 @@ import sys, numpy
 
 f = file(sys.argv[1])
 beacon = sys.argv[2]
-interval = float(sys.argv[3])
+interval = int(sys.argv[3])
 
 starttime = 0
 elements = {37:[], 38:[], 39:[]}
@@ -27,15 +27,15 @@ for line in f:
     elements[channel].append({"time": time, "rss": rss})
 
 lines=[]
-for c in elements:
-    for e in elements[c]:
-        t = e["time"]
-        rss = e["rss"]
-        filtered = {c: filter(lambda e: abs(e["time"] - t) < interval/2, elements[c]) for c in elements}
-        rsss = {c: [e["rss"] for e in filtered[c]] for c in filtered}
-        counts = {c: len(filter(lambda e2: int(e2["time"]/100) == int(t/100), elements[c])) for c in elements}
-        lines.append({"time":t, "line":("%10.5f %4d" + (" %5d %4d %6.1f %7.2f %7.2f"* 3)) % tuple([t, rss] +
-                sum ([[counts[c], max(rsss[c]), numpy.median(rsss[c]), avg(rsss[c]), numpy.std(rsss[c])] for c in [37,38,39]], []))})
+for t in range(0,int(time),interval):
+    filtered = {c: filter(lambda e2: int(e2["time"]/interval) == int(t/interval), elements[c]) for c in elements}
+    rsss = {c: [e["rss"] for e in filtered[c]] for c in filtered}
+    stats = []
+    for c in [37,38,39]:
+        if len(rsss[c]) == 0:
+            stats.append("0 - - - -")
+        else:
+            stats.append("%4d %4d %6.1f %6.1f %6.1f" %(len(rsss[c]), max(rsss[c]), numpy.median(rsss[c]), numpy.percentile(rsss[c],25), numpy.percentile(rsss[c], 75)))
 
-for line in sorted(lines, key=lambda l: l["time"]):
-    print(line["line"])
+    print("%5d %s" % (t, " ".join(stats)))
+

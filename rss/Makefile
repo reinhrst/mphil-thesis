@@ -2,8 +2,9 @@ include ../Makefile.chapters-shared
 
 .SECONDARY:
 
-busyroom-beacon-%.data: takerollingaverage.py ../measurements/busyroom-ble.log
-	python $+ $* 600 > $@
+busyroom-beacon-%.data: ../measurements/busyroom-ble.log
+
+	python $+ $* 300 > $@
 
 busyroom-%-gnuplot.tex: busyroom-beacon-%.data busyroom.gnuplot 
 	gnuplot -e  "set terminal epslatex color; set output '$@'; filename='$<';" mpi-single-rss.gnuplot

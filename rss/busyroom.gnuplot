@@ -15,9 +15,12 @@ set style line 12 lt 2 lc rgb 'green'
 set style line  3 lt 1 lc rgb 'blue'
 set style line 13 lt 2 lc rgb 'blue'
 
-plot for [i=0:2] filename u 1:(column(i*5+6)              ) w l ls i+ 1 title sprintf("channel %2d", i+37), \
-     for [i=0:2] filename u 1:(column(i*5+6)+column(i*5+7)) w l ls i+11 notitle, \
-     for [i=0:2] filename u 1:(column(i*5+6)-column(i*5+7)) w l ls i+11 notitle, \
-                 filename u 1:(($13+$8+$3)/100) w l ls 3 notitle axis x1y2, \
-                 filename u 1:((    $8+$3)/100) w l ls 2 notitle axis x1y2, \
-                 filename u 1:((       $3)/100) w l ls 1 notitle axis x1y2
+plot filename u 1:4 w l, '' u 1:4:5:6 with errorbars
+
+#plot for [i=1:1] filename u 1:(column(i*5+4)) w l ls i+ 1 title sprintf("channel %2d", i+37), \
+#     for [i=1:1] filename u 1:(column(i*5+5)) w l ls i+11 notitle, \
+#     for [i=1:1] filename u 1:(column(i*5+6)) w l ls i+11 notitle, 
+                 #filename u 1:(($13+$8+$3)/100) w l ls 3 notitle axis x1y2, \
+                 #filename u 1:((    $8+$3)/100) w l ls 2 notitle axis x1y2, \
+                 #filename u 1:((       $3)/100) w l ls 1 notitle axis x1y2
+
