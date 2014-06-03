@@ -1,9 +1,14 @@
+system("make mpi-feasibility.data")
 set xrange[150:3150]
 set xlabel "Distance from transmitter (mm)"
 set ylabel "RSS (dB)
-set style line 1 linetype 1 linecolor rgb '#FFDDFF' pointtype 2 pointsize .7;
-set style line 2 linetype 1 linecolor rgb 'red' pointtype 2 pointsize .5;
-set style line 3 linetype 1 linecolor rgb 'blue' pointtype 2 pointsize .5;
-plot "<awk -v filter_channel=37 -f mpi-data.awk ../measurements/mpi_normal.log" ls 1 title 'normal', \
-     "<awk -v filter_channel=37 -v divide=5 -f mpi-data.awk ../measurements/mpi_offset.log" ls 2 title 'lateral shift', \
-     "<awk -v filter_channel=37 -v divide=7 -f mpi-data.awk ../measurements/mpi_changed_environment.log" ls 3 title 'environment change'
+set style line 1 linetype 1 linecolor rgb '#FFDDFF' pointtype 1 pointsize .7;
+set style line 2 linetype 1 linecolor rgb 'red' pointtype 1 pointsize .5;
+set style line 3 linetype 1 linecolor rgb 'blue' pointtype 1 pointsize .5;
+unset colorbox
+set palette defined (37 1 .87 1, 38 1 0 0, 39 0 0 1)
+
+plot "mpi-feasibility.data" lc palette notitle, \
+ NaN w p lt 1 lc rgb '#FFDDFF'   t 'normal', \
+ NaN w p lt 1 lc rgb 'red' t 'lateral shift', \
+ NaN w p lt 1 lc rgb 'blue'  t 'changed environment'

@@ -18,17 +18,41 @@ The iPhones were chosen because smartphones are the typical devices on which one
 
 \fig{\gnuplot{rss}{channels}{BLE frequency, with three advertising channels}}
 
-\fig{\gnuplot{rss}{frequency-difference}{Received Signal Strength (RSS) for individual channels during a measurement, in an obstruction free environment}}
+
+\fig{
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{frequency-difference-20-14-0x10}{Beacon 1 at location A}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{frequency-difference-11-20-0x10}{Beacon 1 at location B}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{frequency-difference-20-14-0x12}{Beacon 2 at location A}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{frequency-difference-0-0-0x}{All beacons and locations combined}{0.55}
+    \end{subfigure}
+    \caption{Distribution of RSS per channel}
+    \label{fig:rss-frequency-difference}
+}
 
 Bluetooth Low Energy uses 40 channels, each 1MHz wide, in the 2.4GHz spectrum\citep{bluetooth41spec}\footnote{I refer to the Bluetooth 4.1 specification, since it is the newest at the time of writing, however the Bluetooth 4.0 and Bluetooth 4.1 specification do not differ on items of interest to this research.}.
 Channels 0-36 are used for BLE connections, while channels 37, 38 and 39 are exclusively for advertising (figure \ref{fig:rss-channels}).
-The most logical way to implement BLE positioning is using the advertising channels, because that way no connection will have to be made\footnote{Apple's iBeacon uses the advertising channels, however the BLE proximity profile (PXP) uses the data channels. PXP is not used for general positioning though, but is about proximity to a specific object, in which case having a connection to it makes sense. It would be possible to build a general positioning system using connections and data channels, however there is no advantage in it.}.
-As figure \ref{fig:rss-channels} shows, the advertising channels 37, 38 and 39 are distributed though the spectrum; this was done to ensure that at least one of these channels will be free in a situation with lots of radio noise.
+The most logical way to implement BLE positioning is using the advertising channels, because that way no connection will have to be made\footnote{Apple's iBeacon uses the advertising channels, however the BLE proximity profile (PXP) uses the data channels. PXP is not used for general positioning though, but is about proximity to a specific object, in which case having a connection to it makes sense. It is possible to build a general positioning system using connections and data channels; this is not considered in this report.}.
+As figure \ref{fig:rss-channels} shows, the advertising channels 37, 38 and 39 are distributed though the spectrum; this was done to ensure that at least one of these channels will be available in a situation with lots of radio interference.
 The difference in frequency between the extremes, channel 37 and 39, is 78MHz; this difference in frequency has an effect on the RSS.
 
-An antenna and other analogue parts of the transmitter and the receiver will typically be optimised for one frequency, and figure \ref{fig:rss-frequency-difference} shows that, even though the transmitter reports the same transmission power for each frequency, there are differences for reported RSS by the receiver.
-Note that this measurement was done in an open environment, with the receiver and transmitter facing one another; I attribute these differences exclusively to the design of the analogue components in the transmitter and receiver.
-Later in this chapter I show that in other situations, the different frequencies have even larger effects.
+Different frequencies result in different behaviours of antenna and other analogue parts in both the transmitter and the receiver, and have different radio propagation properties.
+\Figureref{rss}{frequency-difference} shows the distribution of RSS per channel in different situations.
+Subfigures (a), (b) and (c) show three different beacons measured at different locations, and show that the distribution differs per beacon and location.
+Subfigure (d) shows the distribution of RSS from all 20 beacons at almost 300 locations, and shows that the differences between channels are minimal\footnote{It looks like higher channels have slightly higher RSS.
+    An explanation for this could be that the iPhone's uses a single antenna for both the 2.4GHz and 5GHz spectrum.
+    The antenna length takes the middle between a quarter wavelength at 2.4GHz and half wavelength at 5GHz.
+    It will therefore be more sensitive at the bottom of the 5GHz range, and the top of the 2.4GHz.
+    However the measured differences may also be an artefact for the used beacons, or fall within measurement error.
+}.
+
+Later in this chapter I show that in other situations, realising we are dealing with multiple frequencies, each with their own propagation properties, is essential for understanding some behaviour.
 
 \subsection{Smartphone support}
 A typical device can only send or receive on one channel at any time.
@@ -62,6 +86,7 @@ This phenomenon is known as \mpp.
 \fig{\gnuplot{rss}{mpi-combine-channels}{Received signal strength at different distances to a transmitter}}
 
 \fig{\gnuplot{rss}{mpi-split-channels}{Received signal strength at different distances to a transmitter, split out per channel}}
+\fig{\gnuplot{rss}{mpi-compare}{Top three graphs are RSS of channel 37 during 3 different runs. Bottom graph is RSS of channel 38 during the third run.}}
 
 One of the ways how \mpp can have an influence on RSS, is through \mpi.
 \Mpi occurs when a signal propagates via two paths, to be received in the same point.
@@ -70,7 +95,9 @@ Depending on the length difference of the two paths, the two signals may strengt
 To explore this effect I built a device that very slowly drags a receiver (an iPhone 5) away from a transmitter (CSR BLE beacon), while the pulled distance and the RSS are constantly being measured.
 Figure \ref{fig:rss-mpi-combine-channels} clearly shows the drops and peaks in the signal that can be attributed to \mpi, however at most distances hugely different RSS values are measured.
 Figure \ref{fig:rss-mpi-split-channels} shows the RSS split out by channel, and here we can see that within each channel, the RSS is fairly constant for one location, and each channel shows its own \mpids.
-Running the experiment multiple times resulted in the same patterns on every run.
+
+\Figureref{rss}{mpi-compare} shows the RSS for a single channel (37) over three runs (top three graphs), and compares this to channel 38 during the third run.
+The same multipath drop pattern is visible in all three runs for one channel, while the other channel has a different pattern.
 That the \mpids are at different locations depending on the channel is to be expected, since the location of these \mpids is dependent on the wave length, thus on the radio frequency.
 
 \fig{
@@ -143,16 +170,16 @@ Also in this case we see 20dB+ drops in the signal strength within a couple of d
 
 \fig{
     \begin{subfigure}[b]{0.5\textwidth}
-        \gnuplotscale{rss}{rot-sw02}{Indoor mostly open room}{0.55}
+        \gnuplotscale{rss}{rot-grass}{Outside in a field}{0.55}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
-        \gnuplotscale{rss}{rot-corridor}{Indoor corridor}{0.55}
+        \gnuplotscale{rss}{rot-sw02}{Indoor in a mostly open room}{0.55}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
-        \gnuplotscale{rss}{rot-sw02-nolos}{Indoor different room}{0.55}
+        \gnuplotscale{rss}{rot-corridor}{Indoor in a corridor}{0.55}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
-        \gnuplotscale{rss}{rot-cove}{Indoor cluttered environment}{0.55}
+        \gnuplotscale{rss}{rot-sw02-nolos}{Indoor, transmitter and receiver in different rooms}{0.55}
     \end{subfigure}
     \caption{RSS under rotation, with and without a body present, in different environments.}
     \label{fig:rss-rot-environments}
@@ -164,12 +191,55 @@ The effect is generally smaller than in an environment with no reflections, and 
 All environments show some drop locations, where the RSS drops by 10-20dB within a couple of degrees.
 
 \section{People moving through the room}
-\fig{\gnuplot{rss}{busyroom-beacon-0x0e}{RSS for three beacons in a room with movement}}
-(remains to be written)
+\fig{
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{busyroom-0x12}{Beacon 1 (left side roof)}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{busyroom-0x10}{Beacon 2 (right side roof)}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{busyroom-0x08}{Beacon 3 (left side floor)}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{busyroom-0x06}{Beacon 4 (right side floor)}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{busyroom-0x14}{Beacon 5 (near)}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{rss}{busyroom-0x13}{Beacon 6 (across)}{0.55}
+    \end{subfigure}
+    \caption{RSS and the number of packets seen for six beacons during different room occupation.}
+    \label{fig:rss-busyroom}
+}
+
+In order to investigate how people and objects moving around a room influence RSS, 20 beacons were placed in a small meeting room (3.5 by 4.5m) together with 2 stationary iPads as receivers on tables, while a standing lunch was being served there.
+All tables and chairs were moved to the side before the start of measurements.
+\Figureref{rss}{busyroom} shows the RSS over time for six beacons on one receiver, and how many packets of were received on each channel; the other beacons and the other receiver show similar data.
+Beacons 1 and 2 were placed in the roof left and right of the receiver, beacons 3 and 4 on the floor.
+Beacon 5 was placed just behind the receiver, and beacon 6 accross the room, both at table height.
+Even though beacon 6 was furthest away, the higest RSS of all beacons is received from this one; this may be because it is in front of the receiver on a direct line of sight.
+
+Five periods were marked using a stopwatch, these are shown in the graphs:
 \begin{itemize}
-    \item 0-1800: occasional movement in the room 
-    \item 1800-3100: mostly empty
-    \item 3100-4900: filled with people
-    \item 4900-7000: room empty again
-    \item 5900: moved furniture back
+    \item Period 1 (12:41-12:59): The lunch is being built up, occasionally people enter and leave the room, most of the time there are one or two people in the room.
+        The door to the room in open.
+    \item Period 2 (12:59-13:27): The room fills up with people, people move around, in the first half of the period there are between 15 and 20 people in the room, after which the room slowly empties.
+        At the end of the period the last group of 3 people leave, and they close the door.
+    \item Period 3 (13:27-13:44): The room is empty.
+    \item Period 4 (13:44-13:47): Without moving any beacons or receivers, the furtiture in the meeting room is put back to meetingroom position, the door is closed again afterwards
+    \item Period 5 (13:47-13:52): The room is empty.
 \end{itemize}
+
+The two periods with an empty room, 3 and 5, are characterised in the graphs in \figureref{rss}{busyroom} by relatively low variance in RSS per channel, whereas period 2, when a lot of people are moving around, shows high variance, with periods 1 and 4 being somewhere in between.
+The differences between period 3 and 5 show the influence of the furniture on the RSS, where major differences between period 1 and 3 are caused by the door.
+This latter effect is especially clear with beacons 1 and 3, which are respectively in the roof and on the floor behind the door.
+
+The beacons broadcast at 10Hz, however in no period more than 6 advertising packets per second are received on average.
+The environment in which the test was done is very noisy in the 2.4GHz band; in addition to numerous \wifi access points, there are many other beacons in the rooms around this one. 
+Even though the 20 beacons used in this test combined broadcast 200 packets per second\footnote{This is per channel; however since a receiver only listens at one channel at any time, for a received 200 packets in total can be assumed.}, only 82.7 packets from these beacons were received on average, plus a 58.1 packets from other beacons not part of the test.
+
+It is interesting to note the huge difference in the number of packets received per second between periods for some beacons.
+It shows that when the RSS drops below -80dB, less packets are received.
+It may be important to take this into account when taking the mean or median of a signal, especially one with a large variance, such as in period 2; since many packets under -80dB are not received, the calculated mean or median that does not take these packets into account, will be too high.

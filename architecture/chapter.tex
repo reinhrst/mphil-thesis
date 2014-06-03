@@ -110,7 +110,7 @@ This differs from the method used in \citet{bahl2000radar}, firstly because they
 
 \subsection{\BRP (\aBRP)}
 \BRP uses a distance function that takes advantage of the radio propagation properties of Bluetooth Low Energy, such as we have seen in \chapterref{rss}.
-In this context it intuitively makes more sense to talk about a ``penalty function'' in stead of a distance function, since what it calculates is not the distance in any multi-dimensional space, but rather adds penalties for differences between the measured and surveyed RSS.
+In this context it intuitively makes more sense to talk about a ``penalty function'' instead of a distance function, since what it calculates is not the distance in any multi-dimensional space, but rather adds penalties for differences between the measured and surveyed RSS.
 This semantic difference does not change its function however, penalties are calculated for each fingerprint in the database, and the ones with the lowest penalties are selected to be averaged.
 
 \BRP recognises that, once during surveying the maximum RSS in an area has been determined, it is very unlikely that during positioning a much higher RSS will be measured at that point.
@@ -136,7 +136,7 @@ The following punishment function was found to work well, however could possibly
 Whereas \aBRP uses a surveyed database of fingerprints, \aBRP-RPM estimates the maximum RSS on a specific location using a radio propagation model.
 \citet{bahl2000radar} describes a radio propagation model used for \wifi signals, which uses the layout of the building, and a Wall Attenuation Factor to estimate RSS at different locations.
 Such a model does not work well for \aBRP however, since \aBRP expects the fingerprints to be the maximum receivable RSS in that area, and the model in \citet{bahl2000radar} tries to have a low average error.
-In stead I use a simplified model for maximum expected RSS at a position.
+Instead I use a simplified model for maximum expected RSS at a position.
 
 Knowing that RSS is in decibel of the power, and the power decreases quadratically with distance, one can calculate the RSS $R(x)$ for a radio signal in empty space at distance x from the transmitter, if the RSS at 1 meter distance $R_0$ is known.
 \begin{equation}
@@ -335,7 +335,7 @@ Because of its size, downloading the full database would only be feasible in cer
 Ideally such a database would be open for anyone to use, so that BLE positioning would work in any application.
 
 \subsection{In-\app beacon database}
-In stead of having a global database with all BLE fingerprints, this information can be available on the phone itself.
+Instead of having a global database with all BLE fingerprints, this information can be available on the phone itself.
 Typically the company using the building could provide an \app with navigation support for that building (e.g.\ Tesco releasing a Tesco \app, which allows navigation inside Tesco supermarkets).
 In this case there is no chicken-and-egg problem, the same organisation provides the beacons, the database and the navigation \app.
 Another advantage of this system is that no internet connection is needed to do the positioning: since the database and the maps are already on the phone, positioning and navigation is possible places without cellular coverage or for those who do not wish to use a cellular data connection.
@@ -354,7 +354,7 @@ It should be noted that this technology can be extended beyond just mapping, suc
 
 
 \subsection{Alternative methods: Listening beacons}
-In stead of having the \device listen for packets from the beacons, the \device instead could send advertising packets to be picked up by the beacons.
+Instead of having the \device listen for packets from the beacons, the \device instead could send advertising packets to be picked up by the beacons.
 The beacons could then use all sorts of methods (for instance time-of-flight) to determine the sender's location, and send this back (either by BLE or over the internet) to the \device, or an interested third party.
 Using something else than RSS means that the beacons may need to be more complex, probably making them more expensive, but this may be acceptable in some deployments.
 The beacons will need to collaborate to determine the \device's position, so they need to be networked (either using BLE or something else), and since they need to listen all the time, they will use more energy than the simple beacons we used above, resulting in either regular battery replacements or connection to a mains power supply.

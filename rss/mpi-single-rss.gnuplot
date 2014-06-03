@@ -8,7 +8,8 @@ set style line 12 linetype 2 linecolor rgb 'black' linewidth 4;
 set style line 3 linetype 1 linecolor rgb 'red' linewidth 3;
 set style line 4 linetype 1 linecolor rgb 'blue' linewidth 3;
 set style line 5 linetype 1 linecolor rgb 'green' linewidth 3;
-plot "mpi-data-div5.data" ls 1 notitle, \
+
+plot "../measurements/mpi_201403171057.log" u 1:3 ls 1 notitle, \
    -6*log(x)-11 ls 12 title 'ideal single RSS', \
    -6*log(x)-6+(log(average_length_mm)/log(10))**2/2 ls 12 notitle, \
     filename with l ls 3 title 'average', \
