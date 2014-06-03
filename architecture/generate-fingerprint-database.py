@@ -2,15 +2,21 @@ from __future__ import print_function
 import sys, math
 
 POS_HEIGHT=2
-HEADING_INTERVAL=5
-HEADING_WIDTH=60
-NO_DATA_RSS=-999
+HEADING_INTERVAL=1
+NO_DATA_HEADING=999
+NO_DATA_RSS=-105
 XMAX=29
 YMAX=21
 GRID_SIZE = 0.6
 
 surveyfile = open(sys.argv[1])
 beaconfile = open(sys.argv[2])
+HEADING_WIDTH = int(sys.argv[3])
+if len(sys.argv) > 4:
+    LISTENING_LENGTH = float(sys.argv[4])
+else:
+    LISTENING_LENGTH = 999
+
 
 beacons = {}
 data = {}
@@ -48,7 +54,7 @@ for line in surveyfile:
     pos = (int(x), int(y))
     if pos == (0,0):
         print (line)
-    data[pos][id].append({"rss": int(rss), "heading": float(heading)})
+    data[pos][id].append({"time": float(timediff), "rss": int(rss), "heading": float(heading)})
 
 print(" ".join([" x", " y","beacon", "   hdg", " max", " 99th", "  mean", "   rpm"] + ["%03ddeg" % (d*HEADING_INTERVAL) for d in range(360/HEADING_INTERVAL)]))
 z = POS_HEIGHT
@@ -57,7 +63,7 @@ for y in range(YMAX+1):
         pos = (x,y)
         headings = reduce(lambda a,b: a+b, [[k["heading"] for k in data[pos][id]] for id in data[pos]])
         if len(headings) == 0:
-            m_heading = NO_DATA_RSS
+            m_heading = NO_DATA_HEADING
         else:
             m_heading = 0
             headingcutoff = headings[0]
@@ -73,7 +79,8 @@ for y in range(YMAX+1):
             
         for id in beacons.keys():
             toprint = ["%2d"%x, "%2d"%y, "%5s"%id, "%6.01f"%m_heading]
-            byrss = sorted(data[pos][id], key=lambda k: k["rss"])
+            toconsider = filter(lambda s: s["time"] <= data[pos][id][0]["time"] + LISTENING_LENGTH, data[pos][id])
+            byrss = sorted(toconsider, key=lambda k: k["rss"])
             if len(byrss):
                 toprint.append("%4d" % byrss[len(byrss)-1]["rss"])
                 toprint.append("%4d" % byrss[len(byrss)*99/100]["rss"])

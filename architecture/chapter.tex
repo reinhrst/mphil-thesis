@@ -24,7 +24,7 @@ This improved algorithm performs 50\% better than the \wifi positioning algorith
 \section{RSS based positioning}
 \label{sec:architecture-rss-based-positioning}
 There are multiple techniques for positioning using radio signals, such as Time-Of-Arrival (TOA), Angle-Of-Arrival (AOA) as Received Signal Strength (RSS).
-No mainstream \devices have support for TOA or AOA for \wifi or Bluetooth Low Energy signals; they do all report RSS for \wifi and BLE signals\footnote{RSS for \wifi signals in iOS can only be retrieved by the positioning process in the OS itself, third party \apps do not have direct access to this data on not-jailbroken devices.}.
+No mainstream \devices have support for TOA or AOA for \wifi or Bluetooth Low Energy signals; they do all report RSS for \wifi and BLE signals\footnote{RSS for \wifi signals in iOS can only be retrieved by the positioning process in the OS itself, third party \apps do not have direct access to this data on non-jailbroken devices.}.
 
 \citet{bahl2000radar} laid the foundation for positioning using \wifi signals.
 The basis is a fingerprint database, containing fingerprints (the RSS, or RSS distribution, for each access point) for a large number of locations.
@@ -52,9 +52,13 @@ Finally the calculated distances are being used to map to a position.
 \citet{bahl2000radar} uses both a 1-nearest-neighbour and a k-nearest-neighbour approach, showing that the second works better (although only slightly due to some choices they made in the rest of the algorithm).
 \citet{li2005method} uses a weighted-k-nearest-neighbour approach, where the nearest neighbours are being weighted by the result of the distance-calculation, and \citet{shin2012enhanced} introduced using a dynamic value for the number of neighbours $k$ to further improve the result.
 
+\citet{pandya2003indoor} compares nearest-neighbour to other positioning methods based on RSS, and finds nearest-neighbour to work well in most cases (among which Bluetooth Classic).
+
 \section{Positioning using BLE}
+(write about why indoor positioning using BLE is a good idea; what the differences from wifi are)
 
 \section{Experiment}
+\label{sec:architecture-experiment}
 \fig{\gnuplot{architecture}{room}{Test bed: room SW02 in the Computer Laboratory of the University of Cambridge.}}
 Room SW02 in the Computer Laboratory of the University of Cambridge is the test bed for this experiment.
 The room consists of a square 12 by 12 meter main area, with several coves.
@@ -66,7 +70,7 @@ All measurements were done on a 60 by 60 cm grid, since this is the size of the 
 
 During the surveying phase, each accessible point on the grid is surveyed, by slowly moving the \device along a circle with a radius of 15 cm centred on the grid point, the back of the phone facing outwards, with a human body on the opposite side of the circle, facing the screen; the normal position for a user using the \device.
 For each advertisement packet received, the beacon ID, advertising channel, RSS and the current heading as reported by the \device's compass, is saved.
-Complete 360\textdegree{} survey took between 3.5 and 15 seconds for each of the 226 accessible points, with an average of 9 seconds per point.
+Complete 360\textdegree{} survey took between 3.5 and 15 seconds for each of the 226 accessible points, with a mean of 9 seconds per point.
 On average 903 advertising packets were captured per point\footnote{With each of the twenty beacon advertising on all three channels at 10 Hertz, $3 \times 10 \times 20 = 600$ advertisements per second are broadcast. Since a \device only listens at one channel at a time (quickly switching between the three channels), a maximum of 200 advertisements per second can be received. Because of the time needed for switching between the channels, and collisions of packets, I consistently received around 100 advertisements per second on my \device.}.
 
 During the positioning phase, a test subject was asked to go to a particular grid point, stand still while holding the phone ``naturally'', with the phone held still over the grid point, and log the beacon ID, advertising channel, RSS and current heading for each packet received for two seconds.
@@ -86,7 +90,7 @@ For access to the raw data, see \appendixref{rawdata}.
 All positioning in this report is being done through the weighted k-nearest-neighbour algorithm.
 Provided a set of distances for a single measurement to each surveyed point, ordered by distance, the average of the points belonging to the first $k$ distances is calculated, weighted by $\frac{1}{distance+\epsilon}$.
 The difference between the compared algorithms is how the distances are calculated, the first two steps of the nearest-neighbour algorithm as described in \sectionref{architecture}{rss-based-positioning}.
-(say something about the choice of $k$)
+These experiments are run with k = 5; I found that value to be optimal in many cases, and near to optimal (within the noise range) in the other cases.
 
 \subsection{Random}
 As a reference, the random method returns a distance randomly.
@@ -97,9 +101,10 @@ As in \citet{bahl2000radar}, the mean RSS over all received packets is used both
 Only one fingerprint per position is taken, unlike \citet{bahl2000radar}, which creates four fingerprints, one in each direction.
 
 \subsection{Signal Space Distance with Orientation (SSD-O)}
-This method uses the same distance function as SSD, however uses the orientation information compare only to results in the same orientation.
-The mean orientation as reported by the \device's compass during the positioning measurement is being used to generate a fingerprint database on the fly, which contains the average RSS measured in that orientation + or - 30 \textdegree{}.
-This differs from the method used in \citet{bahl2000radar}, firstly because they only used four directions, secondly because they needed to match a measurement against all four possible directions, while this method takes advantage of the fact that the \device knows its orientation.
+This method uses the same distance function as SSD, however uses the orientation information compare only to results in the same orientation, similar to \citet{king2006compass}.
+The mean orientation as reported by the \device's compass during the positioning measurement is being used to generate a fingerprint database on the fly, which contains the average RSS measured in that orientation + or - 60 \textdegree{}; this value was found to work best, see \sectionref{architecture}{measurements-ssd-o}.
+This differs from the method used in \citet{bahl2000radar}, firstly because they only used four directions, secondly because they needed to match a measurement against all four possible directions, while this method takes advantage of the fact that the \device knows its orientation; this method is 
+
 (This method is sensitive to irregularities in compass reading)
 (offset position by 0.25 tile?)
 
@@ -121,7 +126,8 @@ The following punishment function was found to work well, however could possibly
     L = \begin{cases}
         |S_i - s_i| \times 1000     & \text{if } s_i - S_i > 3 \\
         |S_i - s_i|                 & \text{if } 0 < s_i -S_i \leq 3 \\
-        |S_i - s_i| \times 0.125    & \text{if } s_i-S_i \leq 0 
+        |S_i - s_i| \times 0.001    & \text{if } -10 < s_i-S_i \leq 0 \\
+        |S_i - s_i| \times 0.125    & \text{if } s_i-S_i \leq -10 
     \end{cases}
     \label{eq:architecture-BRP-punishment}
 \end{equation}
@@ -165,6 +171,200 @@ The SSD-O fingerprint has slightly higher averages than the SSD south of the bea
 The maximum is about 10dB higher than the average (this is generally consistent with the results from \figureref{rss}{mpi-combine-channels}).
 (todo: say something about rpm).
 
+\fig{\gnuplot{architecture}{results}{Errors for the five positioning methods}}
+
+\subsection{Random}
+Using a (deterministic) random distance function gives a mean error of around 6 meters, something that was expected considering that the k-nearest-neighbour algorithm will have a tendency to choose positions in the middle of the room as it averages k positions.
+Obviously this would grow with the size of the test bed; it does give a lower bound for positioning.
 \subsection{Signal Space Distance}
+\fig{\gnuplot{architecture}{positioning-errors-SSD}{Positioning errors using SSD}}
+Using Signal Space distance, the median error is 1.08 meters, while only 1 in 20 attempts result in an error of more than 3.23 meters.
+The arrows in \figureref{architecture}{positioning-errors-SSD} show for each location in which direction, and how far away, the algorithm determined the location to be.
+All arrows are scaled down by a factor 10 to keep the figure readable.
+The circles show the absolute error per positioning.
+
+In general positioning seems to be more accurate close to the walls; one explanation may be that orientation and \mpi influence the reception less close to the wall than in the middle of the room, because reflection off the wall compensates for that.
+This hypothesis is partly supported by \figureref{rss}{rot-environments}, which shows that cluttered environments, with lots of reflections, have see less effect from rotation than an open environment, however there may be other causes as well.
 
 
+\subsection{Signal Space Distance with Orientation}
+\label{sec:architecture-measurements-ssd-o}
+\fig{\gnuplot{architecture}{ssd-o-parameter-effect}{Positioning errors using SSD-O}}
+\Figureref{architecture}{results} shows that using the internal compass to take orientation into account can improve positioning performance; in the experiment the error was between 10\%-20\% lower for SSD-O versus SSD.
+
+The average heading stored for all packets received at a single positioning is calculated (since the \device is held still during positioning, all spread in heading is due to noise), and a fingerprint database is built which only considers all surveyed packages in an angle of 120\textdegree around this average heading (so 60\textdegree to the left and right).
+Since building a fingerprint database is a relatively expensive operation compared to the positioning itself, 360 directional fingerprint databases were pre-calculated one per 1\textdegree.
+
+\Figureref{architecture}{measurements-ssd-o} shows how the median error changes, when these two parameters are changed.
+The different lines represent different widths used to generate the database (where 360\textdegree uses all measurements and creates the same database in every direction; this is the same as SSD in the previous section).
+The x-axis indicates per how many degrees a fingerprint database is pre-calculated; smaller angles mean better performance, however for 1\textdegree, 360 different databases have to be stored, while for 60\textdegree, only 6 databases are necessary.
+A single database is around 20 bytes per $m^2$ (see \sectionref{architecture}{database}), using a 1\textdegree resolution increases this to 7 kilobytes per $m^2$.
+
+The figure shows that the databases with angles 90\textdegree and 120\textdegree perform best, however all databases between 60\textdegree and 180\textdegree perform close to one another.
+The reason that smaller angles perform worse can be explained because there may not be enough survey data within such a small angle to build a good fingerprint.
+Surveying at each location received 903 packages on average.
+If this were equally distributed per beacon and channel, this is 45 packages per beacon, 15 per beacon per channel.
+Using a 30\textdegree capture angle, this leaves 1.25 packages per beacon for that angle \begin{em}if everything were equally distributed\end{em}.
+Especially since many locations were surveyed with less than 903 packages (some only with a third of the packages), it is likely that the small-angle fingerprint databases suffer from a lack of surveying data.
+
+How many databases should be pre-calculated depends on the application.
+\Figureref{architecture}{measurements-ssd-o} shows that a higher resolution generally improves performance, however especially below 10\textdegree the change is very small, and even with just 2 or 4 databases (180\textdegree or 90\textdegree), performance is better than in the SSD case.
+As discussed before, using a 1\textdegree resolution results in 7 kilobyte storage per $m^2$; this may be acceptable if the database lives on a server, but not so in other cases.
+\Sectionref{architecture}{database} discusses different strategies for storing databases.
+
+\fig{\gnuplot{architecture}{positioning-compass-error}{Influence of compass error on SSD-O}}
+SSD-O uses the device's compass to determine orientation.
+During surveying and positioning no obvious errors in the orientation reported by the \device's compass were observed, however the compass accuracy was not measured.
+In other environment the \device's compass was seen to give errors that were off by 90\textdegree, therefore it is interesting to look at what happens when the compass device gives wrong readings.
+For \figureref{architecture}{positioning-compass-error} the heading readings during the positioning were offset by different values.
+The figure shows that SSD-O outperforms SSD with errors of less than 30-60\textdegree.
+
+\subsection{\BRP}
+\Figureref{architecture}{results} shows that \aBRP slightly outperforms SSD, however not by much, and worse than SSD-O.
+It is included because it gives an alternative positioning method, based on the radio properties of BLE, and because it is more resilient against beacons disappearing.
+I will look into this in \sectionref{architecture}{dying-beacons}.
+
+It is also of interest that \aBRP and SSD(-O) have errors no different locations; a combination of the two could be used to further improve positioning, although the way in which to make this combination needs further research.
+
+\subsection{\BRP-Radio Propagation Model}
+\aBRP-RPM performs twice as bad as SSD and \aBRP, however the main advantage is that no surveying has to be done, and the database is extremely small; it only needs to contain information on each beacon's location and transmit power.
+Efficiently encoded this information is 12 bytes\footnote{
+    Assume we want a world-wide coordinate system with a resolution in the cm-range.
+    Earth's surface area is 510,072,000 $km^2$; any usable coordinate is between -10km and +200km in height, giving 107,115,120,000 $km^3$, or 1e26 $cm^3$ to address -- any errors due to the earth not being flat fall within error margins.
+    11 bytes covers 3e26 addresses.
+    The RSS value is only 1 byte, hence 12 byte is enough.
+}, so a beacon could include this information in its advertising packet, completely removing the need for a database.
+
+
+
+\section{Change parameters}
+During this section I look at the performance of the different methods when certain parameters in the system are changed.
+Throughout the section the median error is used for the performance; I have found this to be a good indicator for the performance of the whole system.
+
+\subsection{Positioning listening length}
+\fig{\gnuplot{architecture}{short-walk}{Effect of positioning listening length}}
+As described in \sectionref{architecture}{experiment}, positioning was done by listening at a single location for 2 seconds, receiving 200 samples.
+Decreasing this listening time results in a lower latency for positioning.
+
+\Figureref{architecture}{short-walk} shows that all methods suffer from a shorter listening interval, however the \aBRP based methods suffer more than the SSD based methods.
+This can be explained by realising that the \aBRP based methods are dependent on listening for the maximum value of a beacon, something that may require longer listening.
+Remember that around 100 packets per second are received; for listening periods less then a second it is likely that not each beacon has been received on each channel.
+
+\subsection{Number of beacons}
+\fig{\gnuplot{architecture}{beaconcount}{Effect of the number of beacons}}
+Every beacon added improves positioning, but results in diminishing return.
+The test bed contained 20 beacons, about 0.1 per $m^2$.
+\Figureref{architecture}{beaconcount} shows that fewer beacons indeed result in worse positioning performance.
+
+
+\subsection{Dying beacons}
+\label{sec:architecture-dying-beacons}
+\fig{\gnuplot{architecture}{livebeaconcount}{Effect of beacons dying}}
+In the previous section, I considered what happens if there are fewer beacons, both during surveying and positioning.
+In this section I explore what happens if the beacons were seen during surveying (hence are present in the fingerprint database), but not during positioning.
+This may be because a beacon was switched off, the battery died or the beacon was purposefully removed in a denial-of-service attack.
+Since \wifi access points are plugged in to mains, and they are usually in locations not easily accessible to attackers, they are less likely to suffer from the latter two failures than BLE beacons.
+
+If no packets have been received from a beacon during either surveying or positioning, its average and maximum RSS are set to -105dB.
+This is just below the lowest RSS that has been received on the \device.
+
+\Figureref{architecture}{livebeaconcount} shows that the both SSD based methods are very sensitive to beacons dying.
+A single dead beacon almost doubles the mean error for both methods.
+The \aBRP methods however only gradually show increased errors in a situation where beacons die.
+
+\subsection{Number of surveying points}
+\fig{\gnuplot{architecture}{surveypointpart}{Effect of reducing the number of points surveyed}}
+In order to see the effect of the number of points in the fingerprint database, I randomly removed points from the database.
+As \figureref{architecture}{surveypointpart} shows, removing 75\% of survey points hardly reduces the accuracy.
+The \aBRP based methods seem to be more resilient against removal of even more surveying points than the SSD based methods.
+
+
+\section{Discussion}
+In this section I briefly discuss some of the points in this report that may need closer inspection or further research.
+
+The device used to do the surveying and the positioning was the same physical device.
+Different devices may return different RSS for the same signal, and may have different characteristics, because of differences in the antenna, the enclosure or the OS.
+Depending on the algorithm these differences will have to be corrected for in some way.
+
+The test was done in a 2D environment; applying this to a 3D environment is not trivial.
+Indoor environments often span multiple floors and beacons can be received through floors and ceilings.
+A 2 meter error horizontally is probably acceptable in many positioning scenarios, while 2 meter vertically may position you on a different floor.
+In this experiment surveying and positioning were done on more or less the same height; even though determining a \device's height from the floor may not be needed in most scenarios, the horizontal position should stay accurate even if the \device is used on a different height.
+
+The fact that BLE uses 3 separate channels for advertising is recognised but not being taken advantage of in the methods discussed here.
+Using each channel separately in the SSD based methods may not be feasible; it would expand the dimensions in the signal space by a factor 3, and as a result the methods may actually perform less.
+Using each channel for \aBRP would an interesting idea to pursue.
+If a single channel is received stronger than surveyed at that location, that should give the same penalty as if the whole signal is stronger.
+
+Unfortunately the test bed environment was mostly deserted during both the surveying and the positioning.
+Indoor positioning may in many cases be used in busy environments; on conferences, in museums, train stations or airports.
+It would have been interesting to see how the systems behave when many people move around.
+
+Finally the test bed used in this report is a relatively open space.
+It is interesting to see how \aBRP performs in an environment with more walls in it.
+\aBRP is designed to pay less attention to signals that are lower than expected at a certain location.
+A lower than expected signal may however also be due to a wall.
+I do have good hopes that \aBRP will still give comparable results in that case to SSD; further research will have to show this.
+
+\section{Access to the fingerprint database}
+\label{architecture-database}
+One question we have not dealt with above is how the \device has access to the fingerprint database.
+Although this doesn't influence the results of the positioning, it is interesting to consider, especially in the light of chapter \ref{chap:security} on privacy and security.
+The database size depends on the area that is being mapped, around 20 bytes per $m^2$ gives a fair estimation\footnote{Assume a $10,000m^2$ area that we want to map.
+    I assume a compact data format, which starts with a list of beacons, and then surveyed information, one survey point per meter, 10,000 survey points in total.
+    This results in 10,000 data points, for each I'll store the RSS of the 20 \begin{em}closest\end{em} beacons.
+    Since the coordinates for all beacons are known, and the coordinates for each surveyed point are known, the \device can calculate the 20 closest points.
+    The RSS was returned by all test devices as signed 8-bit value; some space could be saved by recognising that the interesting values for RSS all lie within a 6-bit range, but 8 bits will give us a good idea of size.
+    This means that per beacon 8 bytes (2 byte beacon-ID and 2 bytes per coordinate) are needed, and per measurement point $20 \times 1 byte$.
+    Assuming a beacon every 5 meters, 400 in total, the map will be $some overhead + 400 \times 8 + 10,000 \times 20 \times 1 \approx 200 kilobyte$, which results in about 20 bytes per $m^2$.
+    It should be noted that the survey resolution of one measurement per $m^2$ may be too low or high (\citet{bahl2000radar} suggests that a lower resolution may perform only a bit worse), or that the 20 closest beacons are too many or too little, but this gives at the least an idea for the size of the map.
+}, resulting in about 50 kilobyte for the average Tesco Superstore\urlref{http://www.tescoplc.com/files/pdf/results/2014/prelim/prelim_2013-14_analyst_pack.pdf}, up to 1 megabyte for large museums such as the British Museum or le Louvre.
+
+\subsection{Global beacon database}
+\Wifi positioning is based on a global database (more precisely multiple competing global databases), maintained by commercial parties such as Skyhook and Google.
+The data from this database comes from surveying outside (for instance with Google Streetview cars), and is updated by manual submissions and by use \urlref{http://www.skyhookwireless.com/location-technology/coverage.php}.
+Building something similar for BLE encounters many problems: BLE peripherals (the ones that do the advertising) don't have a fixed address, and they may change their ID or advertisement message often.
+In addition many BLE peripherals are mobile, carried around by people.
+As a result such a database would need to only contain BLE beacons\footnote{There is no standard for a BLE beacon, but something very similar to an iBeacon would make sense: a fixed string identifying that it's a beacon, and then an ID.}. 
+BLE beacons typically have a limited range, and may not be noticed when driving around outside.
+Finally there may be a chicken-and-egg problem: unlike \wifi access points, BLE beacons have only one goal, which is positioning, and they will not be installed until the database to use them is there.
+The database however only makes sense with a critical mass of BLE beacons.
+
+If these problems were solved (either because companies would manually enter their beacon positions into the database, or through better scanning techniques), and everybody agreed on this standard, a BLE positioning system similar to the \wifi positioning system, could work.
+Because of its size, downloading the full database would only be feasible in certain situations, and most of the time positioning would be done by sending the measured RSS to the cloud, and getting back a position.
+Ideally such a database would be open for anyone to use, so that BLE positioning would work in any application.
+
+\subsection{In-\app beacon database}
+In stead of having a global database with all BLE fingerprints, this information can be available on the phone itself.
+Typically the company using the building could provide an \app with navigation support for that building (e.g.\ Tesco releasing a Tesco \app, which allows navigation inside Tesco supermarkets).
+In this case there is no chicken-and-egg problem, the same organisation provides the beacons, the database and the navigation \app.
+Another advantage of this system is that no internet connection is needed to do the positioning: since the database and the maps are already on the phone, positioning and navigation is possible places without cellular coverage or for those who do not wish to use a cellular data connection.
+Navigation happens in a proprietary \app though,that needs to be installed before, and will not be available in general applications, such as Google maps.
+This method also has increased privacy concerns, that I discuss in chapter \ref{chap:security}.
+Finally this method may result in an out-of-date database; \citet{moller2012update} showed that only 50\% of Android users install a new \app version within 7 days, and 25\% has not updated even after 3 months; another method for updating the database then updating the \app may be needed, but this may lead to its own problems.
+
+\subsection{On-beacon beacon database}
+A third option is to have the fingerprint database and the indoor map on the beacons themselves, preferably in an open format.
+Since advertising packets themselves can only contain 31 bytes of information (this includes the beacon ID), a phone would have to make a connection to a beacon to download the database and map.
+In some quick experiments, I found a sustained BLE data transfer rate of 8KByte/second, meaning that a small database and map can be downloaded in seconds\footnote{Larger maps could possibly be downloaded in parts, or by switching to a higher bandwidth system, such as Bluetooth ER, or \wifi. A switch to another connection may require user interaction on some systems though, notably in iOS.}
+The beacon database and indoor map can be picked up by any \app that understands the format, and no internet connection is required.
+Extra care does have to be taken that all beacons have the same up-to-date version of the database, and because beacons are connected to and send out more data, their battery life will decrease.
+
+It should be noted that this technology can be extended beyond just mapping, such as giving up-to-date information in maps (which check out registers or theme park rides are not busy, where can I find the next bus to Cambridge, etc), or to replace signs (menu-of-the-day, wifi-password, opening hours or latest offers). 
+
+
+\subsection{Alternative methods: Listening beacons}
+In stead of having the \device listen for packets from the beacons, the \device instead could send advertising packets to be picked up by the beacons.
+The beacons could then use all sorts of methods (for instance time-of-flight) to determine the sender's location, and send this back (either by BLE or over the internet) to the \device, or an interested third party.
+Using something else than RSS means that the beacons may need to be more complex, probably making them more expensive, but this may be acceptable in some deployments.
+The beacons will need to collaborate to determine the \device's position, so they need to be networked (either using BLE or something else), and since they need to listen all the time, they will use more energy than the simple beacons we used above, resulting in either regular battery replacements or connection to a mains power supply.
+
+\subsection{Alternative methods: BLE Bats and crickets}
+Positioning systems \define{Active Bat}\citep{harter2002anatomy} and \define{Cricket}\citep{priyantha2000cricket} use a combination of radio waves and ultrasound to do positioning.
+With BLE, \device have the ability to do the same: a speaker and microphone for sound, and BLE allows \apps an easy way to send simple radio packets.
+Within this architecture, many strategies are possible.
+One could equip each BLE beacon with a speaker.
+The \device sees the beacon, connects to it and asks it to send an ultrasound pulse.
+There is evidence that smartphone microphones can pick-up (near) ultrasound\citep{arentz2011near,bihler2011smartguide}.
+For positioning however it is important the precise timings can be obtained on when the BLE packet and the sound were received, and it remains to be seen if these precise timings are delivered by the OS.
+A system like this requires limited alteration to the beacon hardware, although there will be a large increase in power usage for beacons that are used a lot.

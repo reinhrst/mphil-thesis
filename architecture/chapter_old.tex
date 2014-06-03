@@ -25,7 +25,7 @@ In this chapter I introduce an algorithm to do positioning based on BLE beacons 
 I show that taking into account this behaviour improves the accuracy of the positioning in my test-setup by 50\%.
 
 \section{Off-line surveying and database}
-
+\label{architecture-database}
 In order for a \device to position, it compares the measured RSS to values in a database.
 In this model three questions need to be answered: how is the database filled; how does the \device access the information in the database; and how are the measured values are related to valued in the database.
 The third question will be answered in the next sections and make up the bulk of this chapter; the first two questions I deal with in this section.
@@ -115,11 +115,13 @@ BLE beacons can be small, cheap and tenths or hundreds can coexist in the same a
 A BLE beacon can also run for a considerable time on a single battery.
 These two properties mean that deploying BLE beacons in large numbers, also in places where no power socket is available, is easier than with \wifi access points.
 More beacons generally mean better positioning results.
+In addition, a \wifi scan needs between 600 and 4000 ms to perform a single scan and get a single RSS value for each beacon(ref?); BLE uses fewer channels and a configurable beaconing frequency, which allows for a much higher update frequency.
 On the other hand, chapter \ref{chap:rss} shows that BLE is more susceptible to RSS fluctuations than \wifi, which complicates positioning.
 Running beacons on batteries also means there is a risk that a beacon may die.
 Beacons may also be placed in more accessible locations than \wifi access points, meaning that it may be easier for a malicious or careless agent to move or remove the beacon.
 This latter point is discussed further in chapter \ref{chap:security}.
 The former points are dealt with in this chapter.
+
 
 
 \subsection{k-nearest-neighbour}
@@ -192,6 +194,7 @@ same antenna
 only in 2d
 alternatives to NN mentioned in bahl2000radar for higher dimensions
 hand-help positioning assumed
+Should we use channels?
 
 \section{Alternative methods}
 \label{sec:architecture-alternative}

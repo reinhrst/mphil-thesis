@@ -41,3 +41,4 @@
 *-gnuplot.tex
 
 wordcount.tex
+*.generated.tex

@@ -1,23 +1,47 @@
 from __future__ import print_function
-import sys, math
+import sys, math, hashlib, os
 
-HEADING_INTERVAL=5
+HEADING_INTERVAL=1
 BRP_HIGH_PENALTY_CUTOFF= 3
-BRP_HIGH_PENALTY_FACTOR= 1000
+BRP_HIGH_PENALTY_FACTOR= 100000
 BRP_LOW_PENALTY_FACTOR = .125
 K = 5
-METHODS=['SSD', 'SSD-O', 'BRP', "BRP-RPM"]
+GRID_SIZE=0.60
 
-database = file(sys.argv[1])
-walks = map(file, sys.argv[2:])
+if os.environ.has_key("BEACONCOUNT"):
+    BEACONCOUNT = int(os.environ["BEACONCOUNT"])
+else:
+    BEACONCOUNT = 20
+BEACONS = ["0x%02x" % (i+1) for i in range(BEACONCOUNT)]
+
+if os.environ.has_key("LIVEBEACONCOUNT"):
+    LIVEBEACONCOUNT = int(os.environ["LIVEBEACONCOUNT"])
+else:
+    LIVEBEACONCOUNT = 20
+
+LIVEBEACONS = ["0x%02x" % (i+1) for i in range(LIVEBEACONCOUNT)]
+
+if os.environ.has_key("SURVEYPOINTPART"):
+    SURVEYPOINTPART = float(os.environ["SURVEYPOINTPART"])
+else:
+    SURVEYPOINTPART = 1
+
+VALIDPOINTS=[chr(i) for i in range(int(256*SURVEYPOINTPART))]
+
+METHODS=sys.argv[1].split()
+database = file(sys.argv[2])
+walks = map(file, sys.argv[3:])
 
 fingerprints = {}
+
 
 MAX=0
 NNTH=1
 MEAN=2
 RPM=3
 HEADING_BASE=4
+
+EPSILON = 0.01
 
 def avg(seq):
     return sum(seq)/float(len(seq))
@@ -28,22 +52,42 @@ def percentile(seq, pct):
 def calc_BRP(measurementRSS, fingerprintRSS):
     diff = measurementRSS - fingerprintRSS
     if diff > BRP_HIGH_PENALTY_CUTOFF:
-        return diff * BRP_HIGH_PENALTY_FACTOR
-    if diff >=0:
+        return diff+BRP_HIGH_PENALTY_FACTOR
+    if diff >= 0:
         return diff
+    if diff > -10:
+        return -diff*0.001
     return -diff*BRP_LOW_PENALTY_FACTOR
 
 
 def calc_penalties(positioning, candidate_position):
     "Calculates penalties for all methods, to place this positioning measurement at the candidate position"
     fingerprint = fingerprints[candidate_position]
-    heading_col = HEADING_BASE + int((positioning["heading"]+HEADING_INTERVAL/2)%360)/HEADING_INTERVAL
-    return {
-        'SSD':     sum([(positioning[id][MEAN]-fingerprint[id][       MEAN])**2 for id in fingerprint])**.5,
-        'SSD-O':   sum([(positioning[id][MEAN]-fingerprint[id][heading_col])**2 for id in fingerprint])**.5,
-        'BRP':     sum([calc_BRP(positioning[id][MAX],fingerprint[id][MAX]) for id in fingerprint]),
-        'BRP-RPM': sum([calc_BRP(positioning[id][MAX],fingerprint[id][RPM]) for id in fingerprint]),
-    }
+    result = {}
+    for method in METHODS:
+        if method=="Random":
+            h = hashlib.md5();
+            h.update(repr((candidate_position,"".join(["%f"%positioning[id][MEAN] for id in fingerprint]))))
+            result['Random'] = int(h.hexdigest()[:6],16)+EPSILON
+        if method=="SSD":
+            result['SSD'] = sum([(positioning[id][MEAN]-fingerprint[id][       MEAN])**2 for id in fingerprint])**.5 + EPSILON
+        if method=="BRP":
+            result['BRP'] = sum([calc_BRP(positioning[id][MAX],fingerprint[id][MAX]) for id in fingerprint]) + EPSILON
+        if method=="BRP-RPM":
+            result['BRP-RPM'] = sum([calc_BRP(positioning[id][MAX],fingerprint[id][RPM]) for id in fingerprint]) + EPSILON
+        if method[:len("SSD-C")] == "SSD-C":
+            compass_error = int(method[len("SSD-C"):])
+            interval = 1
+            heading_col = HEADING_BASE + int((positioning["heading"]+compass_error+interval/2)%360)/interval*interval/HEADING_INTERVAL
+            result[method] = sum([(positioning[id][MEAN]-fingerprint[id][heading_col])**2 for id in fingerprint])**.5 + EPSILON
+        if method[:len("SSD-O")] == "SSD-O":
+            interval = method[len("SSD-O"):]
+            if len(interval) == 0:
+                interval = "1"
+            interval = int(interval)
+            heading_col = HEADING_BASE + int((positioning["heading"]+interval/2)%360)/interval*interval/HEADING_INTERVAL
+            result[method] = sum([(positioning[id][MEAN]-fingerprint[id][heading_col])**2 for id in fingerprint])**.5 + EPSILON
+    return result
 
 def WKNN(penalties, method, pos, k):
     ordered = sorted(penalties, key=lambda p: p["penalties"][method])
@@ -52,27 +96,33 @@ def WKNN(penalties, method, pos, k):
     avgy = sum([1.0/p["penalties"][method]*p["pos"][1] for p in ordered[:k]])/div
     error=((avgx-pos[0])**2 + (avgy-pos[1])**2)**.5
     errors[method].append(error)
-    return (avgx, avgy, error)
+    return (avgx, avgy, error, div)
 
 for line in database:
-    if line[0] == " " or line[0] == "#" or len(line.strip()) == 0 or line.split()[3] == "-999":
+    if line.split()[0] == "x" or line[0] == "#" or len(line.strip()) == 0 or line.split()[3] == "-999.0":
         continue
 
     parts = line.split()
 
     (x, y) = map(int, parts[:2])
     pos = (x,y)
+    h = hashlib.md5();
+    h.update(repr(pos))
+    if h.digest()[0] not in VALIDPOINTS:
+        continue
+
     if not fingerprints.has_key(pos):
         fingerprints[pos] = {}
 
     id = parts[2]
-    fingerprints[pos][id] = map(float, parts[4:])
+    if id in BEACONS:
+        fingerprints[pos][id] = map(float, parts[4:])
 
 errors = {k:[] for k in METHODS}
 for walk in walks:
     positionings = {}
     for line in walk:
-        if line[0] == " " or line[0] == "#" or len(line.strip()) == 0 or line.split()[3] == "-999.0":
+        if line.split()[0] == "x" or line[0] == "#" or len(line.strip()) == 0 or line.split()[3] == "999.0":
             continue
 
         parts = line.split()
@@ -84,16 +134,19 @@ for walk in walks:
             positionings[pos] = {"heading": float(parts[3])}
 
         id = parts[2]
-        positionings[pos][id] = map(float, parts[4:])
+        if id in BEACONS:
+            if id in LIVEBEACONS:
+                positionings[pos][id] = map(float, parts[4:])
+            else:
+                positionings[pos][id] = [-105] * len(parts[4:])
 
+
+    toprint = {}
     for y in range(22):
         for x in range(30):
             pos = (x,y)
             if positionings.has_key(pos):
                 penalties = [{"pos": p, "penalties": calc_penalties(positionings[pos],p)} for p in fingerprints]
-                print(" ".join(["%2d %2d"%pos] + ["%4.1f %4.1f %4.1f"%WKNN(penalties, method, pos, K) for method in METHODS]))
+                print(" ".join(["%2d %2d"%pos] + ["%5.1f %4.1f %6.2f %7.3f"%WKNN(penalties, method, pos, K) for method in METHODS]))
 
-print
-for method in errors:
-    
-    print(method, "%5.2f"%avg(errors[method]), ";".join(["%5.2f"%percentile(errors[method], pct) for pct in [0, 25, 50, 75, 95,100]]))
+print("\n".join([" ".join(["%7s" % method, "%5.2f m"%(avg(errors[method]) * GRID_SIZE)] + ["%5.2f m"%(percentile(errors[method], pct) * GRID_SIZE) for pct in [25, 50, 75, 95]]) for method in METHODS]), file=sys.stderr)

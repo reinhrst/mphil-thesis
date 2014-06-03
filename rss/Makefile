@@ -2,6 +2,13 @@ include ../Makefile.chapters-shared
 
 .SECONDARY:
 
+busyroom-beacon-%.data: takerollingaverage.py ../measurements/busyroom-ble.log
+	python $+ $* 600 > $@
+
+busyroom-%-gnuplot.tex: busyroom-beacon-%.data busyroom.gnuplot 
+	gnuplot -e  "set terminal epslatex color; set output '$@'; filename='$<';" mpi-single-rss.gnuplot
+	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
+
 mpi-single-rss-%mm.data: mpi-average.gawk ../measurements/mpi_201403171057.log
 	gawk -v average_length_mm=$(@:mpi-single-rss-%mm.data=%) -f mpi-average.gawk ../measurements/mpi_201403171057.log > $@
 
