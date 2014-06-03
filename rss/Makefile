@@ -17,7 +17,7 @@ mpi-feasibility.data: ../measurements/mpi_normal.log ../measurements/mpi_offset.
 mpi-single-rss-%mm.data: mpi-average.gawk ../measurements/mpi_201403171057.log
 	gawk -v average_length_mm=$* -f mpi-average.gawk ../measurements/mpi_201403171057.log > $@
 
-mpi-single-rss-%mm-gnuplot.tex: mpi-single-rss-%mm.data mpi-data-div5.data mpi-single-rss.gnuplot
+mpi-single-rss-%mm-gnuplot.tex: mpi-single-rss-%mm.data mpi-single-rss.gnuplot
 	gnuplot -e  "set terminal epslatex color; set output '$@'; filename='$<'; average_length_mm=$*;" mpi-single-rss.gnuplot
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
