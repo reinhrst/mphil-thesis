@@ -10,10 +10,6 @@ do for [i=50:53] {
 }
 unset key
 set yrange [-26:1]
-do for [i=30:33] {
-    unset label i
-    unset object i
-}
 do for [i=1:20] {
     if (i != heatmapbeacon) {
         unset label i
@@ -22,4 +18,4 @@ do for [i=1:20] {
 
 eval(compass(2,-24,2))
 beaconid = sprintf("0x%02x", heatmapbeacon)
-plot '<grep '.beaconid.' fingerprint-database.data' u 1:(-$2):heatmapcolumn with image
+plot '<grep '.beaconid.' fingerprint-database-heading-width-120.data' u 1:(-$2):heatmapcolumn with image

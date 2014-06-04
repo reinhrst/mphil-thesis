@@ -12,27 +12,28 @@ if os.environ.has_key("BEACONCOUNT"):
     BEACONCOUNT = int(os.environ["BEACONCOUNT"])
 else:
     BEACONCOUNT = 20
-BEACONS = ["0x%02x" % (i+1) for i in range(BEACONCOUNT)]
 
 if os.environ.has_key("LIVEBEACONCOUNT"):
     LIVEBEACONCOUNT = int(os.environ["LIVEBEACONCOUNT"])
 else:
     LIVEBEACONCOUNT = 20
 
-LIVEBEACONS = ["0x%02x" % (i+1) for i in range(LIVEBEACONCOUNT)]
+if os.environ.has_key("RUNS"):
+    RUNS = int(os.environ["RUNS"])
+else:
+    RUNS = 1
 
 if os.environ.has_key("SURVEYPOINTPART"):
     SURVEYPOINTPART = float(os.environ["SURVEYPOINTPART"])
 else:
     SURVEYPOINTPART = 1
 
-VALIDPOINTS=[chr(i) for i in range(int(256*SURVEYPOINTPART))]
 
 METHODS=sys.argv[1].split()
 database = file(sys.argv[2])
 walks = map(file, sys.argv[3:])
 
-fingerprints = {}
+fingerprints = None
 
 
 MAX=0
@@ -89,6 +90,13 @@ def calc_penalties(positioning, candidate_position):
             result[method] = sum([(positioning[id][MEAN]-fingerprint[id][heading_col])**2 for id in fingerprint])**.5 + EPSILON
     return result
 
+def hashme(v1, v2, v3):
+    h = hashlib.md5()
+    h.update(repr(v1))
+    h.update(repr(v2))
+    h.update(repr(v3))
+    return h.digest()
+
 def WKNN(penalties, method, pos, k):
     ordered = sorted(penalties, key=lambda p: p["penalties"][method])
     div = sum([1.0/p["penalties"][method] for p in ordered[:k]])
@@ -98,55 +106,71 @@ def WKNN(penalties, method, pos, k):
     errors[method].append(error)
     return (avgx, avgy, error, div)
 
+kALLPOS = {}
 for line in database:
     if line.split()[0] == "x" or line[0] == "#" or len(line.strip()) == 0 or line.split()[3] == "-999.0":
         continue
-
     parts = line.split()
 
-    (x, y) = map(int, parts[:2])
-    pos = (x,y)
-    h = hashlib.md5();
-    h.update(repr(pos))
-    if h.digest()[0] not in VALIDPOINTS:
-        continue
-
-    if not fingerprints.has_key(pos):
-        fingerprints[pos] = {}
-
-    id = parts[2]
-    if id in BEACONS:
-        fingerprints[pos][id] = map(float, parts[4:])
+    pos = tuple(map(int, parts[:2]))
+    kALLPOS[pos] = 1
+database.seek(0)
 
 errors = {k:[] for k in METHODS}
-for walk in walks:
-    positionings = {}
-    for line in walk:
-        if line.split()[0] == "x" or line[0] == "#" or len(line.strip()) == 0 or line.split()[3] == "999.0":
+for run in range(RUNS):
+    ALLBEACONS = ["0x%02x" % (i+1) for i in range(20)]
+    LIVEBEACONS = sorted(ALLBEACONS, key=lambda b: hashme(b,run,"live"))[:LIVEBEACONCOUNT]
+    BEACONS = sorted(ALLBEACONS, key=lambda b: hashme(b,run,"beacons"))[:BEACONCOUNT]
+    VALIDPOS = sorted(kALLPOS.keys(), key=lambda b: hashme(b, run, "pos"))[:int(len(kALLPOS) * SURVEYPOINTPART)]
+    fingerprints = {}
+
+    for line in database:
+        if line.split()[0] == "x" or line[0] == "#" or len(line.strip()) == 0 or line.split()[3] == "-999.0":
             continue
 
         parts = line.split()
 
-        (x, y) = map(int, parts[:2])
-        pos = (x,y)
+        pos = tuple(map(int, parts[:2]))
+        if pos not in VALIDPOS:
+            continue
 
-        if not positionings.has_key(pos):
-            positionings[pos] = {"heading": float(parts[3])}
+        if not fingerprints.has_key(pos):
+            fingerprints[pos] = {}
 
         id = parts[2]
         if id in BEACONS:
-            if id in LIVEBEACONS:
-                positionings[pos][id] = map(float, parts[4:])
-            else:
-                positionings[pos][id] = [-105] * len(parts[4:])
+            fingerprints[pos][id] = map(float, parts[4:])
+    database.seek(0)
 
+    for walk in walks:
+        positionings = {}
+        for line in walk:
+            if line.split()[0] == "x" or line[0] == "#" or len(line.strip()) == 0 or line.split()[3] == "999.0":
+                continue
 
-    toprint = {}
-    for y in range(22):
-        for x in range(30):
+            parts = line.split()
+
+            (x, y) = map(int, parts[:2])
             pos = (x,y)
-            if positionings.has_key(pos):
-                penalties = [{"pos": p, "penalties": calc_penalties(positionings[pos],p)} for p in fingerprints]
-                print(" ".join(["%2d %2d"%pos] + ["%5.1f %4.1f %6.2f %7.3f"%WKNN(penalties, method, pos, K) for method in METHODS]))
+
+            if not positionings.has_key(pos):
+                positionings[pos] = {"heading": float(parts[3])}
+
+            id = parts[2]
+            if id in BEACONS:
+                if id in LIVEBEACONS:
+                    positionings[pos][id] = map(float, parts[4:])
+                else:
+                    positionings[pos][id] = [-105] * len(parts[4:])
+        walk.seek(0)
+
+
+        toprint = {}
+        for y in range(22):
+            for x in range(30):
+                pos = (x,y)
+                if positionings.has_key(pos):
+                    penalties = [{"pos": p, "penalties": calc_penalties(positionings[pos],p)} for p in fingerprints]
+                    print(" ".join(["%2d %2d"%pos] + ["%5.1f %4.1f %6.2f %7.3f"%WKNN(penalties, method, pos, K) for method in METHODS]))
 
 print("\n".join([" ".join(["%7s" % method, "%5.2f m"%(avg(errors[method]) * GRID_SIZE)] + ["%5.2f m"%(percentile(errors[method], pct) * GRID_SIZE) for pct in [25, 50, 75, 95]]) for method in METHODS]), file=sys.stderr)

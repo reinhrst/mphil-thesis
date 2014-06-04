@@ -21,6 +21,9 @@
 \definecolor{samechan}{rgb}{0.9,1,0.9}
 \definecolor{diffchan}{rgb}{1,1,1}
 
+\newcommand{\BLE}{Bluetooth Low Energy\xspace}
+\newcommand{\ptfp}{push-to-fix\xspace}
+\newcommand{\Ptfp}{Push-to-fix\xspace}
 \newcommand{\Wifi}{Wi-Fi\xspace}
 \newcommand{\wifi}{Wi-Fi\xspace}
 \newcommand{\apps}{apps\xspace}
@@ -42,7 +45,7 @@
     \input{#1/wordcount.tex}
 }
 
-\newcommand{\urlref}[1]{\footnote{\url{#1}}}
+\newcommand{\urlref}[2]{\footnote{\url{#1}, accessed on #2.}}
 \newcommand{\chapterref}[1]{chapter \ref{chap:#1}}
 \newcommand{\appendixref}[1]{appendix \ref{app:#1}}
 \newcommand{\figureref}[2]{figure \ref{fig:#1-#2}}
@@ -53,6 +56,10 @@
 \newcommand{\Sectionref}[2]{Section \ref{sec:#1-#2}}
 \newcommand{\equationref}[2]{equation \ref{eq:#1-#2}}
 
+\newcommand{\h}[1]{& \begin{sideways}#1\end{sideways}}
+\newcommand{\rowspan}[2]{
+    \multirow{#1}{*}{\begin{sideways}#2\end{sideways}}
+}
 
 \newcommand{\define}[1]{\begin{em}#1\end{em}}
 \newcommand{\gnuplotscale}[4]{
@@ -66,7 +73,7 @@
     \label{fig:#1-#2}
 }
 \newcommand{\makeandinput}[2]{
-    \immediate\write18{make -C #1 #2.tex}
+    \immediate\write18{make -j4 -C #1 #2.tex}
     \input{#1/#2}
 }
 \newcommand{\fig}[1]{
@@ -75,12 +82,12 @@
     \end{figure}
 }
 
-\includeonly{rss/chapter}
+%\includeonly{architecture/chapter}
 
 \def\mySfFamily{\fontfamily{qcr}\selectfont \sffamily }
 \begin{document}
 
-\title{BLE positioning (\input{wordcount.tex})}
+\title{Push-to-fix indoor positioning using Bluetooth Low Energy (\input{wordcount.tex})}
 \author{Reinoud Elhorst}
 \date{\today}
 \maketitle

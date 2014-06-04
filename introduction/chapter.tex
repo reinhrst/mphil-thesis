@@ -28,35 +28,18 @@ In July 2013 Apple introduced the iBeacon technology.
 An iBeacon sends Bluetooth Low Energy (BLE) packets at regular intervals, and a BLE capable device (such as an iPhone) can receive them and determine its proximity to the beacon.
 This allows for accurate absolute positioning (within a meter), but the technology is at the moment only being used to determine whether a device is close to a certain beacon; since the beacon's position itself is not known however, this technique does not improve absolute positioning.
 
-In this report I look at the possibilities for using BLE for absolute positioning, i.e.\ drawing one's position on a map, or using it for navigation.
-I explain why BLE is better suited for this than other suggested systems for indoor positioning, and discuss some of the drawbacks and pitfalls, such as the fact that BLE advertising uses three distinct channels, how to deal with multi-path interference and whether we can use these properties to our advantage.
-I show how a positioning system based on BLE beacons works in the computer lab, and how it compares to other positioning systems active in the lab.
-Finally, I discuss how a positioning system based on BLE beacons deals with privacy and security, as compared to Wifi and mobile signal positioning.
+\section{Contributions}
 
+In this report I look at the possibilities for using BLE for \define{one-shot}, or \define{push-to-fix positioning}, i.e.\ using a single measurement to determine one's absolute location in two or three dimensions.
+I explain why BLE is at least a good addition to existing indoor positioning systems, and discuss some of the drawbacks and pitfalls, such as the fact that BLE advertising uses three distinct channels, how to deal with multi-path interference and whether we can use these properties to our advantage.
+I show how a positioning system based on BLE beacons works in the Cambridge University Computer Lab.
+As main contribution I introduce \define{\BRP} in \sectionref{architecture}{brp}, a new algorithm to do positioning, that takes specific Bluetooth Low Energy properties in account, and which is shown to perform on par with Single Space Distance (SSD), a much used algorithm in signal strength based positioning, in many situations, and hugely outperform it in some.
+A secondary contribution is the introduction in \sectionref{architecture}{ssd-o} of \define{Signal Space Distance with Orientation} algorithm, an improvement on SSD, which reduces the error by 10-20\% in the test environment.
+An additional contribution is a discussion in \chapterref{security} on how a positioning system based on BLE beacons deals with privacy and security, compared to other positioning methods.
 
-\section{Bluetooth Low Energy}
-Bluetooth Low Energy, also known as Bluetooth Smart, or sometimes incorrectly referred to as Bluetooth 4.0, is a new wireless connection technology that is quickly gaining in popularity.
-It was introduced in 2010 as part of the Bluetooth 4.0 standard, and is widely expected to be available in billions of devices within a couple of years.
-In February 2014, out of the top 10 most sold smartphones, at least nine had BLE support\footnote{
-    \url{http://www.counterpointresearch.com/top-10-smartphones-in-february-2014},
-    \url{https://www.apple.com/iphone},
-    \url{http://www.samsung.com/global/microsite/galaxys4/},
-    \url{http://www.samsung.com/uk/consumer/mobile-devices/galaxy-note/smartphones/SM-N9005ZWEBTU},
-    \url{http://www.samsung.com/uk/consumer/mobile-devices/smartphones/android/GT-I9195ZKABTU},
-    \url{http://www.gsmarena.com/xiaomi_hongmi-5609.php},
-    \url{http://www.samsung.com/uk/consumer/mobile-devices/smartphones/android/GT-I9300MBDBTU},
-    \url{http://www.mi.com/en/mi3#fullspecs}
-}\footnote{I was unable to verify that the Xiaomi M3 supports Bluetooth Low Energy, the specs just claim Bluetooth 4.0}.
-
-\fig{\gnuplot{introduction}{ble-wifi}{Bluetooth Low Energy advertising (blue) and data (red) channels, and \wifi channels, with the much-used 1/6/11 channel combination in bold.}}
-
-BLE uses the same 2.4GHz frequency band as Wifi and classical Bluetooth, and even though many dual-use 
-
-\section{Suitability of Bluetooth Low Energy}
-- on smartphones
-- cheap deployment
-- no pairing needed
-- smaller range than wifi
-- long battery life
-- 
-
+\section{Research questions}
+I focus on the following questions in this report:
+\begin{itemize}
+    \item What are the radio propagation issues we have to take into account when trying to build a push-to-fix Received Signal Strength (RSS) based positioning system based on Bluetooth Low Energy? How do these properties differ from \wifi, a technology with which there is ample experience building RSS based positioning systems?
+    \item Can I find an RSS-based push-to-fix positioning algorithm that works around, or possibly takes advantage of these properties? How does this algorithm perform compared to the algorithms commonly used for \wifi positioning?
+\end{itemize}

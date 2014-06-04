@@ -45,7 +45,7 @@ The difference in frequency between the extremes, channel 37 and 39, is 78MHz; t
 Different frequencies result in different behaviours of antenna and other analogue parts in both the transmitter and the receiver, and have different radio propagation properties.
 \Figureref{rss}{frequency-difference} shows the distribution of RSS per channel in different situations.
 Subfigures (a), (b) and (c) show three different beacons measured at different locations, and show that the distribution differs per beacon and location.
-Subfigure (d) shows the distribution of RSS from all 20 beacons at almost 300 locations, and shows that the differences between channels are minimal\footnote{It looks like higher channels have slightly higher RSS.
+Subfigure (d) shows the distribution of RSS from all 20 beacons at 226 locations, and shows that the differences between channels are minimal\footnote{It looks like higher channels have slightly higher RSS.
     An explanation for this could be that the iPhone's uses a single antenna for both the 2.4GHz and 5GHz spectrum.
     The antenna length takes the middle between a quarter wavelength at 2.4GHz and half wavelength at 5GHz.
     It will therefore be more sensitive at the bottom of the 5GHz range, and the top of the 2.4GHz.
@@ -87,10 +87,6 @@ This phenomenon is known as \mpp.
 
 \fig{\gnuplot{rss}{mpi-split-channels}{Received signal strength at different distances to a transmitter, split out per channel}}
 \fig{\gnuplot{rss}{mpi-compare}{Top three graphs are RSS of channel 37 during 3 different runs. Bottom graph is RSS of channel 38 during the third run.}}
-\newcommand{\h}[1]{&\begin{sideways}#1\end{sideways}}
-\newcommand{\rowspan}[2]{
-    \multirow{#1}{*}{\begin{sideways}#2\end{sideways}}
-}
 \newcommand{\correlationtable}[2]{&\cellcolor{#1}#2}
 \begin{table}
     \begin{tabular}{ | c | r | c | c | c | c | c | c | c | c | c | }
@@ -215,6 +211,7 @@ The effect is generally smaller than in an environment with no reflections, and 
 All environments show some drop locations, where the RSS drops by 10-20dB within a couple of degrees.
 
 \section{People moving through the room}
+\label{sec:rss-busyroom}
 \fig{
     \begin{subfigure}[b]{0.5\textwidth}
         \gnuplotscale{rss}{busyroom-0x12}{Beacon 1 (left side roof)}{0.55}

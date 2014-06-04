@@ -108,17 +108,6 @@ eval(computer_table(15.0,-16,51))
 eval(computer_table(24.2,- 6,52))
 eval(computer_table(24.2,-16,53))
 
-
-set object 30 circle center  0,-10 size  5.0/60 fs empty border lc rgb 'green'
-set object 31 circle center  0,-12 size 10.0/60 fs empty border lc rgb 'green'
-set object 32 circle center  0,-14 size 20.0/60 fs empty border lc rgb 'green'
-set object 33 circle center  0,-16 size 50.0/60 fs empty border lc rgb 'green'
-
-set label 30 'error 50cm'  at first  1.5, first -10.05 left
-set label 31 'error 100cm' at first  1.5, first -12.05 left
-set label 32 'error 200cm' at first  1.5, first -14.05 left
-set label 33 'error 500cm' at first  1.5, first -16.05 left
-
 set pointsize 1.8
 beacon(x,y,nr,lt) = sprintf("x=%f;y=%f;nr=%d; set label nr '' at first x, first y front point lt %d lc rgb 'red'", x, y, nr, lt)
 #wall mounted beacons

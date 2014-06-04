@@ -101,6 +101,7 @@ As in \citet{bahl2000radar}, the mean RSS over all received packets is used both
 Only one fingerprint per position is taken, unlike \citet{bahl2000radar}, which creates four fingerprints, one in each direction.
 
 \subsection{Signal Space Distance with Orientation (SSD-O)}
+\label{sec:architecture-ssd-o}
 This method uses the same distance function as SSD, however uses the orientation information compare only to results in the same orientation, similar to \citet{king2006compass}.
 The mean orientation as reported by the \device's compass during the positioning measurement is being used to generate a fingerprint database on the fly, which contains the average RSS measured in that orientation + or - 60 \textdegree{}; this value was found to work best, see \sectionref{architecture}{measurements-ssd-o}.
 This differs from the method used in \citet{bahl2000radar}, firstly because they only used four directions, secondly because they needed to match a measurement against all four possible directions, while this method takes advantage of the fact that the \device knows its orientation; this method is 
@@ -109,6 +110,7 @@ This differs from the method used in \citet{bahl2000radar}, firstly because they
 (offset position by 0.25 tile?)
 
 \subsection{\BRP (\aBRP)}
+\label{sec:architecture-brp}
 \BRP uses a distance function that takes advantage of the radio propagation properties of Bluetooth Low Energy, such as we have seen in \chapterref{rss}.
 In this context it intuitively makes more sense to talk about a ``penalty function'' instead of a distance function, since what it calculates is not the distance in any multi-dimensional space, but rather adds penalties for differences between the measured and surveyed RSS.
 This semantic difference does not change its function however, penalties are calculated for each fingerprint in the database, and the ones with the lowest penalties are selected to be averaged.
@@ -177,7 +179,7 @@ The maximum is about 10dB higher than the average (this is generally consistent 
 Using a (deterministic) random distance function gives a mean error of around 6 meters, something that was expected considering that the k-nearest-neighbour algorithm will have a tendency to choose positions in the middle of the room as it averages k positions.
 Obviously this would grow with the size of the test bed; it does give a lower bound for positioning.
 \subsection{Signal Space Distance}
-\fig{\gnuplot{architecture}{positioning-errors-SSD}{Positioning errors using SSD}}
+\fig{\gnuplot{architecture}{positioning-errors-SSD}{Positioning errors using SSD, colour indicates average error, arrows indicate the direction where the algorithm calculated the \device to be.}}
 Using Signal Space distance, the median error is 1.08 meters, while only 1 in 20 attempts result in an error of more than 3.23 meters.
 The arrows in \figureref{architecture}{positioning-errors-SSD} show for each location in which direction, and how far away, the algorithm determined the location to be.
 All arrows are scaled down by a factor 10 to keep the figure readable.
@@ -257,20 +259,26 @@ The test bed contained 20 beacons, about 0.1 per $m^2$.
 \Figureref{architecture}{beaconcount} shows that fewer beacons indeed result in worse positioning performance.
 
 
-\subsection{Dying beacons}
+\subsection{Unobserved beacons}
 \label{sec:architecture-dying-beacons}
-\fig{\gnuplot{architecture}{livebeaconcount}{Effect of beacons dying}}
+\fig{\gnuplot{architecture}{livebeaconcount}{Effect of unobserved beacons}}
 In the previous section, I considered what happens if there are fewer beacons, both during surveying and positioning.
 In this section I explore what happens if the beacons were seen during surveying (hence are present in the fingerprint database), but not during positioning.
 This may be because a beacon was switched off, the battery died or the beacon was purposefully removed in a denial-of-service attack.
 Since \wifi access points are plugged in to mains, and they are usually in locations not easily accessible to attackers, they are less likely to suffer from the latter two failures than BLE beacons.
 
-If no packets have been received from a beacon during either surveying or positioning, its average and maximum RSS are set to -105dB.
-This is just below the lowest RSS that has been received on the \device.
+In addition, a beacon may be transmitting, but not be observed during the listening interval.
+\Sectionref{rss}{busyroom} suggests that (at least in some cases) at most 60\% of advertisements are received (and in many cases considerably fewer).
+If randomly 40\% of packets are not observed, there is a 2.5\% chance that four subsequent packets from one beacon are all missed.
+In the test set-up, beacons broadcast at 10Hz, however in many situations beacons may broadcast at lower rates to save energy.
+If 20 beacons broadcast at 4Hz, there is only a 60\% chance that all 20 are heard at least once in a 1 second period, assuming the same random 40\% drop rate.
 
-\Figureref{architecture}{livebeaconcount} shows that the both SSD based methods are very sensitive to beacons dying.
-A single dead beacon almost doubles the mean error for both methods.
-The \aBRP methods however only gradually show increased errors in a situation where beacons die.
+If no packets have been received from a beacon during either surveying or positioning, the algorithms used set its average and maximum RSS -105dB.
+This is just below the lowest RSS that has been successfully received on the \device.
+
+\Figureref{architecture}{livebeaconcount} shows that the both SSD based methods are very sensitive to unobserved beacons.
+A single unobserved beacon almost doubles the mean error for both methods.
+The \aBRP methods however only gradually show increased errors in a situation where beacons are not observed.
 
 \subsection{Number of surveying points}
 \fig{\gnuplot{architecture}{surveypointpart}{Effect of reducing the number of points surveyed}}
@@ -360,6 +368,7 @@ Using something else than RSS means that the beacons may need to be more complex
 The beacons will need to collaborate to determine the \device's position, so they need to be networked (either using BLE or something else), and since they need to listen all the time, they will use more energy than the simple beacons we used above, resulting in either regular battery replacements or connection to a mains power supply.
 
 \subsection{Alternative methods: BLE Bats and crickets}
+\label{architecture}{bats}
 Positioning systems \define{Active Bat}\citep{harter2002anatomy} and \define{Cricket}\citep{priyantha2000cricket} use a combination of radio waves and ultrasound to do positioning.
 With BLE, \device have the ability to do the same: a speaker and microphone for sound, and BLE allows \apps an easy way to send simple radio packets.
 Within this architecture, many strategies are possible.
