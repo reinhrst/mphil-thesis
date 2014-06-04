@@ -264,3 +264,37 @@ Even though the 20 beacons used in this test combined broadcast 200 packets per 
 It is interesting to note the huge difference in the number of packets received per second between periods for some beacons.
 It shows that when the RSS drops below -80dB, less packets are received.
 It may be important to take this into account when taking the mean or median of a signal, especially one with a large variance, such as in period 2; since many packets under -80dB are not received, the calculated mean or median that does not take these packets into account, will be too high.
+
+\section{Packet loss}
+\label{sec:rss-packet-loss}
+According to the Bluetooth 4.0 \spec, an advertising packet should be sent on all three advertising channels within a short time.
+This means that a beacon advertising at 10Hz (the beaconing rate) sends 10 packets per second on each of the three channels.
+
+A \device listening for advertisements typically listens on one channel at a time, but switches quickly between the channels, since (as this chapter shows) not all devices can be received equally well on all channels at all times.
+If a \device were to switch channels at exactly the same moment as a beacon, it could, in theory, receive all 30 packets, however since these two are normally not synchronised, one can expect a 1/3 chance that a \device is listening on the channel the beacon is transmitting on, resulting in a maximum of 10 receivable packets per second.
+
+The actual amount of packets received in my measurements is lower, in prolonged experiments, the amount of packets reported by the OS with a usable RSS (sometimes iOS returns an RSS of 127, meaning that no RSS measurement was done) is between 40\% and 60\% of the beaconing rate.
+As an example, even though the beacons are set to advertise at 10Hz, in \figureref{rss}{busyroom} we never see an average of more than 6 packets (and often less).
+
+There are a number of reasons why not all packets are received for transmitters that are in range.
+\begin{itemize}
+    \item \Mpi or antenna orientation may result in the packet being lost in ambient noise
+    \item Another transmitter may transmit a stronger signal during the packet
+    \item The \device may switch channels half-way a packet
+    \item While switching channels, there will be a small time when the device is not listening; any packets sent in this period will not be noticed.
+\end{itemize}
+
+\begin{table}
+    \begin{tabular}{r | c | c | c | c | c | c | c | c | c | c |}
+        & \multicolumn{10}{c}{listening time in beacon-intervals} \\
+        \makeandinput{rss}{packet-loss-generated}
+    \end{tabular}
+    \label{tbl:rss-packet-loss}
+\end{table}
+
+Assuming that a single advertising packet sent on all three channels, is received 60\% of the time (the upper limit of what I measured) and further assuming that whether a packet is received is fully random (i.e.\ reception chance of a packet does not depend on whether previous packets were received\footnote{This is an optimistic assumption. If a packet is missed because the RSS is too low, there is a better-than-random chance that the next packet from the same beacon is lost too.}), we can calculate how large the chance is that we did not received at least one packet from each beacon.
+\Tableref{rss}{packet-loss} shows that with one beacon, if we wait for four beacon-intervals, there is still a 2.6\% chance we did not receive it.
+With 20 beacons, after four beacon-intervals we have a 40\% chance that not all beacons were received at least once.
+Even if all beacons are received once, calculating the median or maximum RSS as suggested in \sectionref{rss}{mpi} would require packets from multiple channels for each beacon.
+
+TODO: This was done on 10-50Hz beacons. Is this also true for 1Hz beacons? Check that the beacons actually broadcast at 10Hz.

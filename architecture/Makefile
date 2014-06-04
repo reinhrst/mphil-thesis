@@ -66,7 +66,8 @@ surveypointpart-gnuplot.tex: surveypointpart.gnuplot $(SURVEYPOINTPARTDEPS)
 	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@'; surveypointpartdeps='$(SURVEYPOINTPARTDEPS)'" $<
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
-
+packet-loss-generated.tex: packet-loss.py
+	python $< > $@
 
 short-walk-gnuplot.tex: short-walk.gnuplot short-positioning-stats-0.1s.data short-positioning-stats-0.25s.data short-positioning-stats-0.5s.data short-positioning-stats-1.0s.data short-positioning-stats-1.5s.data short-positioning-stats-2.0s.data
 	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@';" $<
