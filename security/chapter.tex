@@ -14,7 +14,7 @@ I score each method on 12 points in three categories: \yes, \no and \maybe
 The system is set up so that \yes is always more desirable than \maybe, which in turn is more desirable than \no; this may be counter intuitive in a property like "cost", where \yes means cheap and \no means expensive.
 Many of the scores are debatable; where needed I give my arguments in the text.
 I do not intend to point to a winner: which system works best depends on the application; many properties are not mentioned here (such as whether it works indoors), and some properties may be more important to some people than others.
-The intention is that the scoring card in figure \ref{fig:security-scoring} gives a quick overview of the strengths and weaknesses of each method.
+The intention is that the scoring card in \tableref{security}{scoring} gives a quick overview of the strengths and weaknesses of each method.
 
 \section{Methods}
 The methods are devided in 4 categories: Non technological methods are using a paper map and street signs, and asking for directions.
@@ -33,7 +33,7 @@ It would score considerably better (\yes) on accuracy, and slightly worse (\mayb
 \newcommand{\n}{& \cellcolor{no} \(-\)}
 \newcommand{\m}{& \cellcolor{maybe} \(\pm\)}
 \newcommand{\hlinethick}{\Xhline{2\arrayrulewidth}}
-\fig{
+\begin{table}
 \begin{tabular}{c | r!{\vrule width 2\arrayrulewidth}c|c!{\vrule width 2\arrayrulewidth}c|c|c!{\vrule width 2\arrayrulewidth}c|c|c!{\vrule width 2\arrayrulewidth}c!{\vrule width 2\arrayrulewidth}}
 \multicolumn{2}{c!{\vrule width 2\arrayrulewidth}}{}
                 \h{Paper map and street signs}
@@ -79,8 +79,8 @@ It would score considerably better (\yes) on accuracy, and slightly worse (\mayb
 \\ \hlinethick
 \end{tabular}
 \caption{Scores for different positioning methods}
-\label{fig:security-scoring}
-}
+\label{tbl:security-scoring}
+\end{table}
 
 \subsection{Privacy}
 Privacy is the ability to do positioning without anybody else finding out that you are doing so.
