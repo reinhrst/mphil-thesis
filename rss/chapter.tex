@@ -87,7 +87,29 @@ This phenomenon is known as \mpp.
 
 \fig{\gnuplot{rss}{mpi-split-channels}{Received signal strength at different distances to a transmitter, split out per channel}}
 \fig{\gnuplot{rss}{mpi-compare}{Top three graphs are RSS of channel 37 during 3 different runs. Bottom graph is RSS of channel 38 during the third run.}}
-
+\newcommand{\h}[1]{&\begin{sideways}#1\end{sideways}}
+\newcommand{\rowspan}[2]{
+    \multirow{#1}{*}{\begin{sideways}#2\end{sideways}}
+}
+\newcommand{\correlationtable}[2]{&\cellcolor{#1}#2}
+\begin{table}
+    \begin{tabular}{ | c | r | c | c | c | c | c | c | c | c | c | }
+        \cline{3-11}
+        \multicolumn{2}{c |}{} &
+        \multicolumn{3}{c |}{run 1} &
+        \multicolumn{3}{c |}{run 2} &
+        \multicolumn{3}{c |}{run 3} \\
+        \cline{3-11}
+        \multicolumn{2}{c|}{}
+        \h{ch. 37} \h{ch. 38} \h{ch. 39}
+        \h{ch. 37} \h{ch. 38} \h{ch. 39}
+        \h{ch. 37} \h{ch. 38} \h{ch. 39} \\
+        \hline
+        \makeandinput{rss}{correlation-table-generated}
+    \end{tabular}
+    \caption{Pearson-correlation between multiple runs, on the same channel and different channels. All correlations have a p-value of 0.000.}
+    \label{tbl:rss-mpi-correlation}
+\end{table}
 One of the ways how \mpp can have an influence on RSS, is through \mpi.
 \Mpi occurs when a signal propagates via two paths, to be received in the same point.
 Depending on the length difference of the two paths, the two signals may strengthen or weaken one another (theoretically making it possible for them to cancel one another out completely).
@@ -98,7 +120,9 @@ Figure \ref{fig:rss-mpi-split-channels} shows the RSS split out by channel, and 
 
 \Figureref{rss}{mpi-compare} shows the RSS for a single channel (37) over three runs (top three graphs), and compares this to channel 38 during the third run.
 The same multipath drop pattern is visible in all three runs for one channel, while the other channel has a different pattern.
-That the \mpids are at different locations depending on the channel is to be expected, since the location of these \mpids is dependent on the wave length, thus on the radio frequency.
+\Tableref{rss}{mpi-correlation} shows the Pearson correlation (using 1-second means) between different channels and between different runs.
+The green cells show the same channel in different runs, and clearly have a much higher correlation than between different channels (the white cells).
+This suggests that different channels have their \mpids at different locations, something that is to be expected, since the location of the \mpids is dependent on the wave length, thus on the radio frequency.
 
 \fig{
     \begin{subfigure}[b]{0.5\textwidth}

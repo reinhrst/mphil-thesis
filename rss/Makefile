@@ -29,5 +29,10 @@ rot-%-gnuplot.tex: ../measurements/%-none.log ../measurements/%-sitting.log rot.
 	gnuplot -e  "set terminal epslatex color; set output '$@'; source='$*';" rot.gnuplot
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
+correlation-table-generated.tex: correlation.py ../measurements/mpi_201403171057.log ../measurements/mpi_201403171159.log ../measurements/mpi_201403171254.log
+	python $+ > $@
+
+
 localclean:
 	rm -f *.data
+	rm -f *-generated.tex

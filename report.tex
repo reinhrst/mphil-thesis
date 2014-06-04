@@ -17,6 +17,10 @@
 \definecolor{no}{rgb}{1,0.9,0.9}
 \definecolor{maybe}{rgb}{1,1,1}
 
+\definecolor{same}{rgb}{0.9,0.9,1}
+\definecolor{samechan}{rgb}{0.9,1,0.9}
+\definecolor{diffchan}{rgb}{1,1,1}
+
 \newcommand{\Wifi}{Wi-Fi\xspace}
 \newcommand{\wifi}{Wi-Fi\xspace}
 \newcommand{\apps}{apps\xspace}
@@ -34,7 +38,7 @@
 \newcommand{\mpids}{multi-path interference drops\xspace}
 \newcommand{\Mpi}{Multi-path interference\xspace}
 \newcommand{\wordcount}[1]{
-    \immediate\write18{make -C #1 wordcount.tex}
+    \immediate\write18{make -j4 -C #1 wordcount.tex}
     \input{#1/wordcount.tex}
 }
 
@@ -52,16 +56,18 @@
 
 \newcommand{\define}[1]{\begin{em}#1\end{em}}
 \newcommand{\gnuplotscale}[4]{
-    \immediate\write18{make -C #1 #2-gnuplot.tex}
-    \scalebox{#4}{\input{#1/#2-gnuplot}}
+    \scalebox{#4}{\makeandinput{#1}{#2-gnuplot}}
     \caption{#3}
     \label{fig:#1-#2}
 }
 \newcommand{\gnuplot}[3]{
-    \immediate\write18{make -C #1 #2-gnuplot.tex}
-    \input{#1/#2-gnuplot}
+    \makeandinput{#1}{#2-gnuplot}
     \caption{#3}
     \label{fig:#1-#2}
+}
+\newcommand{\makeandinput}[2]{
+    \immediate\write18{make -C #1 #2.tex}
+    \input{#1/#2}
 }
 \newcommand{\fig}[1]{
     \begin{figure}[ht]
@@ -69,7 +75,7 @@
     \end{figure}
 }
 
-%\includeonly{rss/chapter}
+\includeonly{rss/chapter}
 
 \def\mySfFamily{\fontfamily{qcr}\selectfont \sffamily }
 \begin{document}
