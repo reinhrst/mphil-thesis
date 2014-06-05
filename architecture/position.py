@@ -1,7 +1,6 @@
 from __future__ import print_function
 import sys, math, hashlib, os
 
-HEADING_INTERVAL=1
 BRP_HIGH_PENALTY_CUTOFF= 3
 BRP_HIGH_PENALTY_FACTOR= 100000
 BRP_LOW_PENALTY_FACTOR = .125
@@ -37,10 +36,10 @@ fingerprints = None
 
 
 MAX=0
-NNTH=1
-MEAN=2
-RPM=3
-HEADING_BASE=4
+MEAN=1
+RPM=2
+HEADING_BASE=3
+HEADING_BASE_BRP=4
 
 EPSILON = 0.01
 
@@ -53,12 +52,12 @@ def percentile(seq, pct):
 def calc_BRP(measurementRSS, fingerprintRSS):
     diff = measurementRSS - fingerprintRSS
     if diff > BRP_HIGH_PENALTY_CUTOFF:
-        return diff+BRP_HIGH_PENALTY_FACTOR
+        return 3.042+(diff)*BRP_HIGH_PENALTY_FACTOR
     if diff >= 0:
-        return diff
+        return diff+0.042
     if diff > -10:
-        return -diff*0.001
-    return -diff*BRP_LOW_PENALTY_FACTOR
+        return abs(diff + 4.2)*0.01
+    return abs(diff)*0.1
 
 
 def calc_penalties(positioning, candidate_position):
@@ -71,7 +70,7 @@ def calc_penalties(positioning, candidate_position):
             h.update(repr((candidate_position,"".join(["%f"%positioning[id][MEAN] for id in fingerprint]))))
             result['Random'] = int(h.hexdigest()[:6],16)+EPSILON
         if method=="SSD":
-            result['SSD'] = sum([(positioning[id][MEAN]-fingerprint[id][       MEAN])**2 for id in fingerprint])**.5 + EPSILON
+            result['SSD'] = sum([(positioning[id][MEAN]-fingerprint[id][MEAN])**2 for id in fingerprint])**.5 + EPSILON
         if method=="BRP":
             result['BRP'] = sum([calc_BRP(positioning[id][MAX],fingerprint[id][MAX]) for id in fingerprint]) + EPSILON
         if method=="BRP-RPM":
@@ -79,15 +78,27 @@ def calc_penalties(positioning, candidate_position):
         if method[:len("SSD-C")] == "SSD-C":
             compass_error = int(method[len("SSD-C"):])
             interval = 1
-            heading_col = HEADING_BASE + int((positioning["heading"]+compass_error+interval/2)%360)/interval*interval/HEADING_INTERVAL
+            heading_col = HEADING_BASE + int((positioning["heading"]+compass_error+interval/2)%360/interval)*interval*2
             result[method] = sum([(positioning[id][MEAN]-fingerprint[id][heading_col])**2 for id in fingerprint])**.5 + EPSILON
         if method[:len("SSD-O")] == "SSD-O":
             interval = method[len("SSD-O"):]
             if len(interval) == 0:
                 interval = "1"
             interval = int(interval)
-            heading_col = HEADING_BASE + int((positioning["heading"]+interval/2)%360)/interval*interval/HEADING_INTERVAL
+            heading_col = HEADING_BASE + int((positioning["heading"]+interval/2)%360/interval)*interval*2
             result[method] = sum([(positioning[id][MEAN]-fingerprint[id][heading_col])**2 for id in fingerprint])**.5 + EPSILON
+        if method[:len("BRP-C")] == "BRP-C":
+            compass_error = int(method[len("BRP-C"):])
+            interval = 1
+            heading_col = HEADING_BASE_BRP + int((positioning["heading"]+compass_error+interval/2)%360/interval)*interval*2
+            result[method] = sum([calc_BRP(positioning[id][MAX],fingerprint[id][heading_col]) for id in fingerprint]) + EPSILON
+        if method[:len("BRP-O")] == "BRP-O":
+            interval = method[len("BRP-O"):]
+            if len(interval) == 0:
+                interval = "1"
+            interval = int(interval)
+            heading_col = HEADING_BASE_BRP + int((positioning["heading"]+interval/2)%360/interval)*interval*2
+            result[method] = sum([calc_BRP(positioning[id][MAX],fingerprint[id][heading_col]) for id in fingerprint]) + EPSILON
     return result
 
 def hashme(v1, v2, v3):
@@ -113,6 +124,7 @@ for line in database:
     parts = line.split()
 
     pos = tuple(map(int, parts[:2]))
+    packet_count = int(parts[4])
     kALLPOS[pos] = 1
 database.seek(0)
 
@@ -139,7 +151,7 @@ for run in range(RUNS):
 
         id = parts[2]
         if id in BEACONS:
-            fingerprints[pos][id] = map(float, parts[4:])
+            fingerprints[pos][id] = map(float, parts[5:])
     database.seek(0)
 
     for walk in walks:
@@ -159,9 +171,9 @@ for run in range(RUNS):
             id = parts[2]
             if id in BEACONS:
                 if id in LIVEBEACONS:
-                    positionings[pos][id] = map(float, parts[4:])
+                    positionings[pos][id] = map(float, parts[5:])
                 else:
-                    positionings[pos][id] = [-105] * len(parts[4:])
+                    positionings[pos][id] = [-105] * len(parts[5:])
         walk.seek(0)
 
 

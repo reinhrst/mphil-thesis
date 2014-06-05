@@ -32,6 +32,12 @@ rot-%-gnuplot.tex: ../measurements/%-none.log ../measurements/%-sitting.log rot.
 correlation-table-generated.tex: correlation.py ../measurements/mpi_201403171057.log ../measurements/mpi_201403171159.log ../measurements/mpi_201403171254.log
 	python $+ > $@
 
+packet-loss-generated.tex: packet-loss.py
+	python $< > $@
+
+packet-loss-empirical-generated.tex: packet-loss-empirical.py ../measurements/arch-sw02-offline.log
+	python $+ > $@
+
 
 localclean:
 	rm -f *.data

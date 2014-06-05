@@ -2,53 +2,62 @@ include ../Makefile.chapters-shared
 
 .SECONDARY:
 
-
-FPD=fingerprint-database-heading-width-120.data
+DML=SSD SSD-O BRP BRP-O BRP-RPM
+FPD=fingerprint-database-heading-width-120-180.data
+RUNS=2
 
 fingerprint-database-heading-width-%.data: generate-fingerprint-database.py ../measurements/arch-sw02-offline.log ../measurements/beacon-list
 	python $+ $* > $@
 
 walk-%.data: generate-fingerprint-database.py ../measurements/arch-sw02-walk-%.log ../measurements/beacon-list
-	python $+ 90 > $@
+	python $+ x > $@
 
 short-walk-1-%s.data: generate-fingerprint-database.py ../measurements/arch-sw02-walk-1.log ../measurements/beacon-list
-	python $+ 90 $* > $@
+	python $+ x $* > $@
 
 short-walk-2-%s.data: generate-fingerprint-database.py ../measurements/arch-sw02-walk-2.log ../measurements/beacon-list
-	python $+ 90 $* > $@
+	python $+ x $* > $@
 
 short-walk-3-%s.data: generate-fingerprint-database.py ../measurements/arch-sw02-walk-3.log ../measurements/beacon-list
-	python $+ 90 $* > $@
+	python $+ x $* > $@
 
 short-positioning-stats-%s.data: position.py ${FPD} short-walk-1-%s.data short-walk-2-%s.data short-walk-3-%s.data
-	python $< 'SSD SSD-O BRP BRP-RPM' ${FPD} short-walk-1-$*s.data short-walk-2-$*s.data short-walk-3-$*s.data >/dev/null 2> $@
+	python $< '${DML}' ${FPD} short-walk-1-$*s.data short-walk-2-$*s.data short-walk-3-$*s.data >/dev/null 2> $@
 
 positioning-compass-error.data: position.py ${FPD} walk-1.data walk-2.data walk-3.data
 	python position.py "SSD $$(seq 0 10 180 | sed 's/^/SSD-C/' | tr '\n' ' ')" ${FPD} walk-1.data walk-2.data walk-3.data >$@ 2>/dev/null
 
 positioning-heading-width-%.data positioning-stats-heading-width-%.data: position.py fingerprint-database-heading-width-%.data walk-1.data walk-2.data walk-3.data
-	python $< 'Random SSD SSD-O BRP BRP-RPM' fingerprint-database-heading-width-$*.data walk-1.data walk-2.data walk-3.data > positioning-heading-width-$*.data 2> positioning-stats-heading-width-$*.data
+	python $< 'Random ${DML}' fingerprint-database-heading-width-$*.data walk-1.data walk-2.data walk-3.data > positioning-heading-width-$*.data 2> positioning-stats-heading-width-$*.data
 
 positioning-stats-beaconcount-%.data:position.py ${FPD} walk-1.data walk-2.data walk-3.data 
-	RUNS=40 BEACONCOUNT=$* python position.py "SSD SSD-O BRP BRP-RPM" ${FPD} walk-1.data walk-2.data walk-3.data 2>$@ >/dev/null
+	RUNS=${RUNS} BEACONCOUNT=$* python position.py "${DML}" ${FPD} walk-1.data walk-2.data walk-3.data 2>$@ >/dev/null
 
 positioning-stats-livebeaconcount-%.data:position.py ${FPD} walk-1.data walk-2.data walk-3.data 
-	RUNS=40 LIVEBEACONCOUNT=$* python position.py "SSD SSD-O BRP BRP-RPM" ${FPD} walk-1.data walk-2.data walk-3.data 2>$@ >/dev/null
+	RUNS=${RUNS} LIVEBEACONCOUNT=$* python position.py "${DML}" ${FPD} walk-1.data walk-2.data walk-3.data 2>$@ >/dev/null
 
 positioning-stats-surveypointpart-%.data:position.py ${FPD} walk-1.data walk-2.data walk-3.data 
-	RUNS=40 SURVEYPOINTPART=$* python position.py "SSD SSD-O BRP BRP-RPM" ${FPD} walk-1.data walk-2.data walk-3.data 2>$@ >/dev/null
+	RUNS=${RUNS} SURVEYPOINTPART=$* python position.py "${DML}" ${FPD} walk-1.data walk-2.data walk-3.data 2>$@ >/dev/null
 
-#results.generated.tex: positioning-stats-heading-width-120.data
-#	awk -f generateresults.awk $< > $@
+ssd-o-parameter-effect-heading-width-%.data: position.py fingerprint-database-heading-width-%-180.data walk-1.data walk-2.data walk-3.data
+	python $< 'SSD-O1 SSD-O2 SSD-O5 SSD-O10 SSD-O30 SSD-O60 SSD-O90 SSD-O120 SSD-O180' fingerprint-database-heading-width-$*-180.data walk-1.data walk-2.data walk-3.data > /dev/null 2> $@
 
-ssd-o-parameter-effect-heading-width-%.data: position.py fingerprint-database-heading-width-%.data walk-1.data walk-2.data walk-3.data
-	python $< 'SSD-O1 SSD-O2 SSD-O5 SSD-O10 SSD-O30 SSD-O60 SSD-O90 SSD-O120 SSD-O180' fingerprint-database-heading-width-$*.data walk-1.data walk-2.data walk-3.data > /dev/null 2> $@
+SSD_O_PARAM_DEPS=$(addprefix ssd-o-parameter-effect-heading-width-, $(addsuffix .data,30 45 60 75 90 120 180))
 
+ssd-o-parameter-effect.data: choose-column-from-multiple-files.py positioning-stats-heading-width-120-180.data ${SSD_O_PARAM_DEPS}
+	(for in in $$(seq $$(wc -l $(firstword ${SSD_O_PARAM_DEPS})| awk '{print $$1}')); do grep 'SSD ' positioning-stats-heading-width-120-180.data ; done ) | python $< 5 ${SSD_O_PARAM_DEPS} '-' > $@
 
-SSD_O_PARAM_SRC=ssd-o-parameter-effect-heading-width-30.data ssd-o-parameter-effect-heading-width-45.data ssd-o-parameter-effect-heading-width-60.data ssd-o-parameter-effect-heading-width-75.data ssd-o-parameter-effect-heading-width-90.data ssd-o-parameter-effect-heading-width-120.data ssd-o-parameter-effect-heading-width-180.data
+brp-o-parameter-effect-heading-width-%.data: position.py fingerprint-database-heading-width-%-180.data walk-1.data walk-2.data walk-3.data
+	python $< 'BRP-O1 BRP-O2 BRP-O5 BRP-O10 BRP-O30 BRP-O60 BRP-O90 BRP-O120 BRP-O180' fingerprint-database-heading-width-$*-180.data walk-1.data walk-2.data walk-3.data > /dev/null 2> $@
 
-ssd-o-parameter-effect.data: choose-column-from-multiple-files.py positioning-stats-heading-width-120.data ${SSD_O_PARAM_SRC}
-	(for in in $$(seq $$(wc -l $(firstword ${SSD_O_PARAM_SRC})| awk '{print $$1}')); do grep 'SSD ' positioning-stats-heading-width-120.data ; done ) | python $< 5 ${SSD_O_PARAM_SRC} '-' > $@
+BRP_O_PARAM_DEPS=$(addprefix brp-o-parameter-effect-heading-width-, $(addsuffix .data,30 45 60 75 90 120 180))
+
+brp-o-parameter-effect.data: choose-column-from-multiple-files.py positioning-stats-heading-width-120-180.data ${BRP_O_PARAM_DEPS}
+	(for in in $$(seq $$(wc -l $(firstword ${BRP_O_PARAM_DEPS})| awk '{print $$1}')); do grep 'BRP ' positioning-stats-heading-width-120-180.data ; done ) | python $< 5 ${BRP_O_PARAM_DEPS} '-' > $@
+
+%-o-parameter-effect-gnuplot.tex: %-o-parameter-effect.data o-parameter-effect.gnuplot
+	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@'; target='$<'" o-parameter-effect.gnuplot
+	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
 BEACONCOUNTDEPS = $(addprefix positioning-stats-beaconcount-, $(addsuffix .data,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20))
 
@@ -66,11 +75,10 @@ surveypointpart-gnuplot.tex: surveypointpart.gnuplot $(SURVEYPOINTPARTDEPS)
 	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@'; surveypointpartdeps='$(SURVEYPOINTPARTDEPS)'" $<
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
-packet-loss-generated.tex: packet-loss.py
-	python $< > $@
 
-short-walk-gnuplot.tex: short-walk.gnuplot short-positioning-stats-0.1s.data short-positioning-stats-0.25s.data short-positioning-stats-0.5s.data short-positioning-stats-1.0s.data short-positioning-stats-1.5s.data short-positioning-stats-2.0s.data
-	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@';" $<
+SHORTWALKDEPS = $(addprefix short-positioning-stats-, $(addsuffix s.data,0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0))
+short-walk-gnuplot.tex: short-walk.gnuplot ${SHORTWALKDEPS}
+	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@'; shortwalkdeps='$(SHORTWALKDEPS)';" $<
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
 positioning-type-%.data: position.py ${FPD} walk-1.data walk-2.data walk-3.data
@@ -85,15 +93,19 @@ heatmap-%-mean-gnuplot.tex: heatmap.gnuplot ${FPD} drawsw02.gnuplot
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
 heatmap-%-max-gnuplot.tex: heatmap.gnuplot ${FPD} drawsw02.gnuplot
-	gnuplot -e  "set terminal epslatex color; set output '$@'; heatmapbeacon=0x0$*; heatmapcolumn=5" $<
+	gnuplot -e  "set terminal epslatex color; set output '$@'; heatmapbeacon=0x0$*; heatmapcolumn=6" $<
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
 heatmap-%-rpm-gnuplot.tex: heatmap.gnuplot ${FPD} drawsw02.gnuplot
 	gnuplot -e  "set terminal epslatex color; set output '$@'; heatmapbeacon=0x0$*; heatmapcolumn=8" $<
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
-heatmap-%-rot-0-gnuplot.tex: heatmap.gnuplot ${FPD} drawsw02.gnuplot
+heatmap-%-ssd-o-0-gnuplot.tex: heatmap.gnuplot ${FPD} drawsw02.gnuplot
 	gnuplot -e  "set terminal epslatex color; set output '$@'; heatmapbeacon=0x0$*; heatmapcolumn=9" $<
+	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
+
+heatmap-%-brp-o-0-gnuplot.tex: heatmap.gnuplot ${FPD} drawsw02.gnuplot
+	gnuplot -e  "set terminal epslatex color; set output '$@'; heatmapbeacon=0x0$*; heatmapcolumn=10" $<
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
 localclean:

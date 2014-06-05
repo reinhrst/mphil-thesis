@@ -212,12 +212,12 @@ All environments show some drop locations, where the RSS drops by 10-20dB within
 
 \section{People moving through the room}
 \label{sec:rss-busyroom}
-\fig{
+\begin{figure}[p]
     \begin{subfigure}[b]{0.5\textwidth}
-        \gnuplotscale{rss}{busyroom-0x12}{Beacon 1 (left side roof)}{0.55}
+        \gnuplotscale{rss}{busyroom-0x12}{Beacon 1 (left side ceiling)}{0.55}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
-        \gnuplotscale{rss}{busyroom-0x10}{Beacon 2 (right side roof)}{0.55}
+        \gnuplotscale{rss}{busyroom-0x10}{Beacon 2 (right side ceiling)}{0.55}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
         \gnuplotscale{rss}{busyroom-0x08}{Beacon 3 (left side floor)}{0.55}
@@ -233,12 +233,12 @@ All environments show some drop locations, where the RSS drops by 10-20dB within
     \end{subfigure}
     \caption{RSS and the number of packets seen for six beacons during different room occupation.}
     \label{fig:rss-busyroom}
-}
+\end{figure}
 
 In order to investigate how people and objects moving around a room influence RSS, 20 beacons were placed in a small meeting room (3.5 by 4.5m) together with 2 stationary iPads as receivers on tables, while a standing lunch was being served there.
 All tables and chairs were moved to the side before the start of measurements.
 \Figureref{rss}{busyroom} shows the RSS over time for six beacons on one receiver, and how many packets of were received on each channel; the other beacons and the other receiver show similar data.
-Beacons 1 and 2 were placed in the roof left and right of the receiver, beacons 3 and 4 on the floor.
+Beacons 1 and 2 were placed in the ceiling left and right of the receiver, beacons 3 and 4 on the floor.
 Beacon 5 was placed just behind the receiver, and beacon 6 accross the room, both at table height.
 Even though beacon 6 was furthest away, the higest RSS of all beacons is received from this one; this may be because it is in front of the receiver on a direct line of sight.
 
@@ -249,15 +249,15 @@ Five periods were marked using a stopwatch, these are shown in the graphs:
     \item Period 2 (12:59-13:27): The room fills up with people, people move around, in the first half of the period there are between 15 and 20 people in the room, after which the room slowly empties.
         At the end of the period the last group of 3 people leave, and they close the door.
     \item Period 3 (13:27-13:44): The room is empty.
-    \item Period 4 (13:44-13:47): Without moving any beacons or receivers, the furtiture in the meeting room is put back to meetingroom position, the door is closed again afterwards
+    \item Period 4 (13:44-13:47): Without moving any beacons or receivers, the furniture in the meeting room is put back to meetingroom position, the door is closed again afterwards
     \item Period 5 (13:47-13:52): The room is empty.
 \end{itemize}
 
 The two periods with an empty room, 3 and 5, are characterised in the graphs in \figureref{rss}{busyroom} by relatively low variance in RSS per channel, whereas period 2, when a lot of people are moving around, shows high variance, with periods 1 and 4 being somewhere in between.
 The differences between period 3 and 5 show the influence of the furniture on the RSS, where major differences between period 1 and 3 are caused by the door.
-This latter effect is especially clear with beacons 1 and 3, which are respectively in the roof and on the floor behind the door.
+This latter effect is especially clear with beacons 1 and 3, which are respectively in the ceiling and on the floor behind the door.
 
-The beacons broadcast at 10Hz, however in no period more than 6 advertising packets per second are received on average.
+The beacons broadcast at 10Hz\footnote{The beacons were set to broadcast at 10Hz, however measurements actually show a 105ms delay between packets, so 9.5Hz is more accurate. This small discrepancy does not influence the conclusions however, and throughout this report I will use 10Hz as the broadcasting rate.}, however in no period more than 6 advertising packets per second are received on average.
 The environment in which the test was done is very noisy in the 2.4GHz band; in addition to numerous \wifi access points, there are many other beacons in the rooms around this one. 
 Even though the 20 beacons used in this test combined broadcast 200 packets per second\footnote{This is per channel; however since a receiver only listens at one channel at any time, for a received 200 packets in total can be assumed.}, only 82.7 packets from these beacons were received on average, plus a 58.1 packets from other beacons not part of the test.
 
@@ -267,7 +267,7 @@ It may be important to take this into account when taking the mean or median of 
 
 \section{Packet loss}
 \label{sec:rss-packet-loss}
-According to the Bluetooth 4.0 \spec, an advertising packet should be sent on all three advertising channels within a short time.
+According to the \BTspec, an advertising packet should be sent on all three advertising channels within a short time.
 This means that a beacon advertising at 10Hz (the beaconing rate) sends 10 packets per second on each of the three channels.
 
 A \device listening for advertisements typically listens on one channel at a time, but switches quickly between the channels, since (as this chapter shows) not all devices can be received equally well on all channels at all times.
@@ -284,17 +284,19 @@ There are a number of reasons why not all packets are received for transmitters 
     \item While switching channels, there will be a small time when the device is not listening; any packets sent in this period will not be noticed.
 \end{itemize}
 
+\newcommand{\packetlosscell}[1]{& \footnotesize{#1}}
 \begin{table}
     \begin{tabular}{r | c | c | c | c | c | c | c | c | c | c |}
-        & \multicolumn{10}{c}{listening time in beacon-intervals} \\
+        & \multicolumn{10}{c |}{listening time in transmission intervals} \\
         \makeandinput{rss}{packet-loss-generated}
     \end{tabular}
+    \caption{Chance that not all beacons have been received at least once}
     \label{tbl:rss-packet-loss}
 \end{table}
 
 Assuming that a single advertising packet sent on all three channels, is received 60\% of the time (the upper limit of what I measured) and further assuming that whether a packet is received is fully random (i.e.\ reception chance of a packet does not depend on whether previous packets were received\footnote{This is an optimistic assumption. If a packet is missed because the RSS is too low, there is a better-than-random chance that the next packet from the same beacon is lost too.}), we can calculate how large the chance is that we did not received at least one packet from each beacon.
-\Tableref{rss}{packet-loss} shows that with one beacon, if we wait for four beacon-intervals, there is still a 2.6\% chance we did not receive it.
-With 20 beacons, after four beacon-intervals we have a 40\% chance that not all beacons were received at least once.
+\Tableref{rss}{packet-loss} shows that with one beacon, if we wait for four transmission intervals, there is still a 2.6\% chance we did not receive it.
+With 20 beacons, after four transmission intervals we have a 40\% chance that not all beacons were received at least once.
 Even if all beacons are received once, calculating the median or maximum RSS as suggested in \sectionref{rss}{mpi} would require packets from multiple channels for each beacon.
 
-TODO: This was done on 10-50Hz beacons. Is this also true for 1Hz beacons? Check that the beacons actually broadcast at 10Hz.
+TODO: This was done on 10-50Hz beacons. Is this also true for 1Hz beacons? Can we get some empirical data by putting 20 beacons at close range?

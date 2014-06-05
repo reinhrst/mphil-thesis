@@ -30,7 +30,6 @@ set ytics nomirror
 set xtics ( ft(p0) p0, ft(p1) p1, ft(p2) p2, ft(p3) p3, ft(p5) p5 )
 
 bin(x,y) = floor(x/y)*y
-getcolor(c) = c == 37 ? 'red' : 'green'
 unset colorbox
 
 set arrow 1 from p1,y1min to p1,ptop lt 2 lc rgb 'black' nohead front

@@ -1,9 +1,9 @@
 from __future__ import print_function
-STEPS=10
+STEPS=range(1,11)
 BEACONS = [1,2,5,10,15,20]
 DROPRATE=.4
-for i in range(STEPS):
-    print("& %d"%(i+1), end=" ")
+for i in STEPS:
+    print("& %d"%i, end=" ")
 print("\\\\ \\hline")
 for b in BEACONS:
     print("%2d beacon"%b, end="")
@@ -11,12 +11,16 @@ for b in BEACONS:
         print("s", end=" ")
     else:
         print(" ", end=" ")
-    for i in range(STEPS):
-        rate = ((1-((1-(DROPRATE**(i+1)))**b))*100) 
-        if rate < 10:
-            print("& %4.02f\\%%" % rate , end=" ")
+    for i in STEPS:
+        rate = ((1-((1-(DROPRATE**i))**b))*100) 
+        print("\\packetlosscell{",end="")
+        if rate < 1:
+            print("%4.02f" % rate , end="")
+        elif rate < 10:
+            print("%3.01f" % rate , end="")
         elif rate < 99.95:
-            print("& %4.01f\\%%" % rate , end=" ")
+            print("%2.0f" % rate , end="")
         else:
-            print("&  100\\%%" % () , end=" ")
+            print(" 100" , end="")
+        print("\\%}",end=" ")
     print("\\\\ \\hline")

@@ -18,4 +18,4 @@ do for [i=1:20] {
 
 eval(compass(2,-24,2))
 beaconid = sprintf("0x%02x", heatmapbeacon)
-plot '<grep '.beaconid.' fingerprint-database-heading-width-120.data' u 1:(-$2):heatmapcolumn with image
+plot '<awk -v col='.heatmapcolumn.' -v xmax=29 -v ymax=21 -v beacon='.beaconid.' -f heatmap.awk fingerprint-database-heading-width-120-180.data' u 1:(-$2):3 with image

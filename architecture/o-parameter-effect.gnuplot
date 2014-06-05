@@ -1,5 +1,3 @@
-target = "ssd-o-parameter-effect.data"
-system("make " . target)
 set key bottom title 'Fingerprint based on angle' width -16 vertical maxrows 2
 set yrange [0.7:1.3]
 set ylabel "Median error (m)"
