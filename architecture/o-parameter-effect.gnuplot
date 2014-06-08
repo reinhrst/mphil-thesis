@@ -1,7 +1,22 @@
 set key bottom title 'Fingerprint based on angle' width -16 vertical maxrows 2
-set yrange [0.7:1.3]
+set xrange [0:8]
 set ylabel "Median error (m)"
 set xlabel "Pre-calculated fingerprint database resolution (\\textdegree)"
+if (type eq "ssd") {
+    set yrange [.75:1.3]
+    set ytics ( "0.8" 0.8, \
+                "0.9" 0.9, \
+                "1.0" 1.0, \
+                "1.1" 1.1, \
+                "1.2" 1.2, \
+                "1.3" 1.3)
+    starty = .765
+    dy = 0.02
+} else {
+    set yrange [.65:2.6]
+    starty = .7
+    dy = 0.06
+}
 set xtics ("1" 0, \
            "2" 1, \
            "5" 2, \
@@ -12,29 +27,23 @@ set xtics ("1" 0, \
            "120" 7, \
            "180" 8)
 
-set ytics ( "0.8" 0.8, \
-            "0.9" 0.9, \
-            "1.0" 1.0, \
-            "1.1" 1.1, \
-            "1.2" 1.2, \
-            "1.3" 1.3)
+startx = -0
+dx = .15
 
-startx = .1314
-starty = .2
+set object 1 rectangle from startx-1,starty to startx+1,starty+dy fs solid noborder fc rgb 'white' front noclip
 
-set object 1 rectangle from screen startx-.01,starty to screen startx+.01,starty+.04 fillstyle noborder front fc rgb 'white'
-set object 2 polygon from screen startx,starty-.01 \
-                     to   screen startx,starty \
-                     to   screen startx-.02,starty+.01 \
-                     to   screen startx+.02,starty+.03 \
-                     to   screen startx, starty+.04 \
-                     to   screen startx, starty+.05 \
-                     to   screen startx, starty+.04 \
-                     to   screen startx+.02,starty+.03 \
-                     to   screen startx-.02,starty+.01 \
-                     to   screen startx,starty \
-                     to   screen startx,starty-.01 \
-    front
+set object 2 polygon from startx,starty-.01 \
+                     to   startx,starty \
+                     to   startx-dx,starty+dy/4\
+                     to   startx+dx,starty+3*dy/4 \
+                     to   startx, starty+dy \
+                     to   startx, starty+dy+.1 \
+                     to   startx, starty+dy \
+                     to   startx+dx,starty+3*dy/4 \
+                     to   startx-dx,starty+dy/4 \
+                     to   startx,starty \
+                     to   startx,starty-.01 \
+    front noclip
 
 
 plot target u 0:1 w lp title "30\\textdegree", \

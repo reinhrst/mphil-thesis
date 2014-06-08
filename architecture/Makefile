@@ -4,7 +4,7 @@ include ../Makefile.chapters-shared
 
 DML=SSD SSD-O BRP BRP-O BRP-RPM
 FPD=fingerprint-database-heading-width-120-180.data
-RUNS=2
+RUNS=100
 
 fingerprint-database-heading-width-%.data: generate-fingerprint-database.py ../measurements/arch-sw02-offline.log ../measurements/beacon-list
 	python $+ $* > $@
@@ -47,8 +47,8 @@ SSD_O_PARAM_DEPS=$(addprefix ssd-o-parameter-effect-heading-width-, $(addsuffix 
 ssd-o-parameter-effect.data: choose-column-from-multiple-files.py positioning-stats-heading-width-120-180.data ${SSD_O_PARAM_DEPS}
 	(for in in $$(seq $$(wc -l $(firstword ${SSD_O_PARAM_DEPS})| awk '{print $$1}')); do grep 'SSD ' positioning-stats-heading-width-120-180.data ; done ) | python $< 5 ${SSD_O_PARAM_DEPS} '-' > $@
 
-brp-o-parameter-effect-heading-width-%.data: position.py fingerprint-database-heading-width-%-180.data walk-1.data walk-2.data walk-3.data
-	python $< 'BRP-O1 BRP-O2 BRP-O5 BRP-O10 BRP-O30 BRP-O60 BRP-O90 BRP-O120 BRP-O180' fingerprint-database-heading-width-$*-180.data walk-1.data walk-2.data walk-3.data > /dev/null 2> $@
+brp-o-parameter-effect-heading-width-%.data: position.py fingerprint-database-heading-width-120-%.data walk-1.data walk-2.data walk-3.data
+	python $< 'BRP-O1 BRP-O2 BRP-O5 BRP-O10 BRP-O30 BRP-O60 BRP-O90 BRP-O120 BRP-O180' fingerprint-database-heading-width-120-$*.data walk-1.data walk-2.data walk-3.data > /dev/null 2> $@
 
 BRP_O_PARAM_DEPS=$(addprefix brp-o-parameter-effect-heading-width-, $(addsuffix .data,30 45 60 75 90 120 180))
 
@@ -56,7 +56,7 @@ brp-o-parameter-effect.data: choose-column-from-multiple-files.py positioning-st
 	(for in in $$(seq $$(wc -l $(firstword ${BRP_O_PARAM_DEPS})| awk '{print $$1}')); do grep 'BRP ' positioning-stats-heading-width-120-180.data ; done ) | python $< 5 ${BRP_O_PARAM_DEPS} '-' > $@
 
 %-o-parameter-effect-gnuplot.tex: %-o-parameter-effect.data o-parameter-effect.gnuplot
-	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@'; target='$<'" o-parameter-effect.gnuplot
+	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@'; type='$*'; target='$<'" o-parameter-effect.gnuplot
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
 BEACONCOUNTDEPS = $(addprefix positioning-stats-beaconcount-, $(addsuffix .data,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20))
@@ -107,6 +107,10 @@ heatmap-%-ssd-o-0-gnuplot.tex: heatmap.gnuplot ${FPD} drawsw02.gnuplot
 heatmap-%-brp-o-0-gnuplot.tex: heatmap.gnuplot ${FPD} drawsw02.gnuplot
 	gnuplot -e  "set terminal epslatex color; set output '$@'; heatmapbeacon=0x0$*; heatmapcolumn=10" $<
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
+
+rss-cloud-%s-gnuplot.tex: rss-cloud.gnuplot rss-cloud.py ${FPD} short-walk-1-%s.data short-walk-2-%s.data short-walk-3-%s.data
+	gnuplot -e  "set terminal epslatex color; set output '$@'; filename='<python $(filter-out $<,$+)';" $<
+	sed -Ei '' 's/includegraphics{([^}]*)}/includegraphics{$(CURRENT_DIR)\/{\1}.eps}/' $@
 
 localclean:
 	rm -f *.data

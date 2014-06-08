@@ -35,9 +35,8 @@ correlation-table-generated.tex: correlation.py ../measurements/mpi_201403171057
 packet-loss-generated.tex: packet-loss.py
 	python $< > $@
 
-packet-loss-empirical-generated.tex: packet-loss-empirical.py ../measurements/arch-sw02-offline.log
-	python $+ > $@
-
+packet-loss-empirical-generated.tex: packet-loss-empirical.py
+	python $< '../measurements/packet-loss/br-%dbeacon.log'> $@
 
 localclean:
 	rm -f *.data

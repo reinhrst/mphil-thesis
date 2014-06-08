@@ -41,12 +41,12 @@ Secondly the measured RSS is compared to that for all surveyed points, and the s
 The usual choice for the distance-function (and hence the name) is to calculate the distance in signal-space, where each signal-source is a dimension.
 \citet{li2005method} described a generalised distance function
 \begin{equation}
-    L_q = \left(\sum_{i=1}^{n}|s_i-S_i|^q\right)^{\frac{1}{q}}
+    L_q = \left(\sum_{i=1}^{n}|p_i-s_i|^q\right)^{\frac{1}{q}}
     \label{eq:architecture-distance}
 \end{equation}
-, where $n$ is the number of signal-sources, $s_i$ the measured RSS for a source, and $S_i$ the surveyed RSS at the point to which the distance is to be calculated; different $q$ lead to different distance functions with $L_1$ being the Manhattan distance, and $L_2$ the Euclidean distance.
+, where $n$ is the number of signal-sources, $p_i$ the measured RSS for a source during positioning, and $s_i$ the surveyed RSS at the point to which the distance is to be calculated; different $q$ lead to different distance functions with $L_1$ being the Manhattan distance, and $L_2$ the Euclidean distance.
 There seems to be no clear consensus on which $q$ gives the best result, with \citet{shin2012enhanced} using $L_1$, \citet{bahl2000radar} using $L_2$, only saying that alternatives (possibly also of another form) were briefly experimented with, and \citet{li2005method} using $L_1$, while noting that the difference with other $q$ values is not significant.
-Most methods use the $L_q$ function with the $s_i$ in dB, \citet{li2005method} explores whether the $s_i$ should alternatively use the power $P$, $1/P$, $1/P^2$ or $1/P^4$, concluding that dB works the best, but $1/P^2$ and $1/P^4$ also give good results.
+Most methods use the $L_q$ function with the $s_i$/$p_i$ in dB, \citet{li2005method} explores whether these values should alternatively use the power $P$, $1/P$, $1/P^2$ or $1/P^4$, concluding that dB works the best, but $1/P^2$ and $1/P^4$ also give good results.
 
 Finally the calculated distances are being used to map to a position.
 \citet{bahl2000radar} uses both a 1-nearest-neighbour and a k-nearest-neighbour approach, showing that the second works better (although only slightly due to some choices they made in the rest of the algorithm).
@@ -89,8 +89,10 @@ Provided a set of distances for a single measurement to each surveyed point, ord
 The difference between the compared algorithms is how the distances are calculated, the first two steps of the nearest-neighbour algorithm as described in \sectionref{architecture}{rss-based-positioning}.
 These experiments are run with k = 5; I found that value to be optimal in many cases, and near to optimal (within the noise range) in the other cases.
 
+To deal with cases when a particular beacon was not observed, either during surveying or during positioning, that beacon is treated as having been received with an RSS of -105dB; this is 2dB lower than the lowest RSS ever reported by the iPhone during the experiment.
+
 \subsection{Random}
-As a reference, the random method returns a distance randomly.
+As a reference, the random method returns random distances for each fingerprint, after which the k-nearest-neighbours method is used to calculate a position.
 
 \subsection{Signal Space Distance (SSD)}
 The method described in \citet{bahl2000radar}, using dB for the RSS, and the $L_2$ distance function (\equationref{architecture}{distance}).
@@ -99,37 +101,94 @@ Only one fingerprint per position is taken, unlike \citet{bahl2000radar}, which 
 
 \subsection{Signal Space Distance with Orientation (SSD-O)}
 \label{sec:architecture-ssd-o}
-This method uses the same distance function as SSD, however uses the orientation information compare only to results in the same orientation, similar to \citet{king2006compass}.
-The mean orientation as reported by the \device's compass during the positioning measurement is being used to generate a fingerprint database on the fly, which contains the average RSS measured in that orientation + or - 60 \textdegree{}; this value was found to work best, see \sectionref{architecture}{measurements-ssd-o}.
-This differs from the method used in \citet{bahl2000radar}, firstly because they only used four directions, secondly because they needed to match a measurement against all four possible directions, while this method takes advantage of the fact that the \device knows its orientation; this method is 
+In \sectionref{rss}{rot} I showed that the direction of measurement has a huge influence on the RSS.
+\citet{bahl2000radar} already recognised this in \wifi, and surveyed in four directions; during positioning however he had no way to determine the orientation, and all four directions were considered equally during positioning.
+\citet{king2006compass} considered how knowledge of the orientation improves positioning.
+He surveyed in eight directions, and considered different ways of combining these into ad-hoc fingerprints during positioning.
 
-(This method is sensitive to irregularities in compass reading)
-(offset position by 0.25 tile?)
+I suggest SSD-O.
+Unlike the \wifi surveying used by \citet{bahl2000radar} and \citet{king2006compass}, I survey continuously while turning 360\textdegree.
+For each packet received, the heading as reported by the \device's compass is stored in the database, with the beaconid and the RSS.
+While positioning, the \device is expected to not be rotating much; the average heading $h_p$ of the device is used to build an ad-hoc fingerprinting database.
+This database is built using the mean, where at each location, for each beacon, only those packets are considered that were received during surveying with a heading $h_s$ where $h_p - \alpha < h_s < h_p + \alpha$.
+A value of 60\textdegree for $\alpha$ was found to work best (see \sectionref{architecture}{measurements}).
+In order to not have to calculate the ad-hoc fingerprint database for each positioning, the experiment was run with 360 pre-calculated fingerprint databases, one per 1\textdegree, where for each positioning the closest database is used.
+For example, if the average heading during positioning is 34.6\textdegree, the pre-calculated database at 35\textdegree will be used, which is built using all surveying packets that were received between 335\textdegree and 95\textdegree.
+
+It should be noted that this method is dependent on the accuracy of the built on compass.
+During surveying and reading I kept an eye on the compass reading, and noticed nothing absurd, however no further effort was made to check how accurate the compass is.
+During a similar experiment in another part of the building, I did notice huge compass fluctuations.
+In the measurements section I explore the influence that compass-error has on this method.
 
 \subsection{\BRP (\aBRP)}
 \label{sec:architecture-brp}
-\BRP uses a distance function that takes advantage of the radio propagation properties of Bluetooth Low Energy, such as we have seen in \chapterref{rss}.
-In this context it intuitively makes more sense to talk about a ``penalty function'' instead of a distance function, since what it calculates is not the distance in any multi-dimensional space, but rather adds penalties for differences between the measured and surveyed RSS.
-This semantic difference does not change its function however, penalties are calculated for each fingerprint in the database, and the ones with the lowest penalties are selected to be averaged.
+\begin{figure}[p]
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{architecture}{rss-cloud-2.0s}{2.0s}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{architecture}{rss-cloud-1.0s}{1.0s}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{architecture}{rss-cloud-0.5s}{0.5s}{0.55}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \gnuplotscale{architecture}{rss-cloud-0.2s}{0.2s}{0.55}
+    \end{subfigure}
+    \caption{Relation between the maximum RSS per beacon measured in a spot during surveying and positioning, for different listening times. If a beacon is not observed, it is assigned an RSS of -105dB.}
+    \label{fig:architecture-rss-cloud}
+\end{figure}
 
-\BRP recognises that, once during surveying the maximum RSS in an area has been determined, it is very unlikely that during positioning a much higher RSS will be measured at that point.
-This means that $s_i \gg S_i$ (where $S_i$ is the value stored in the fingerprint and $s_i$ the value measured, for beacon $i$) should result in a large penalty.
-On the other hand, having measured a much lower RSS may be the result of \mpi, antenna orientation or body shadowing, and is not a strong indicator that a particular position should be discarded; hence $s_i \ll S_i$ should not carry a large penalty.
+\fig{\gnuplot{architecture}{penalty}{Penalty function for \aBRP, as compared to SSD}}
 
-The above is only true if the surveyed RSS is not influenced by \mpi, antenna orientation or body shadowing; to assure this the fingerprint takes the maximum RSS (as opposed to the mean in the SSD methods) found during the surveying, and surveying is being done while rotating and moving the \device in a circle, thereby minimising the chance that the maximum RSS surveyed is not the maximum in the area.
-If something changes in the environment making it likely that the maximum has changed (for instance furniture that was blocking the direct signal before, was moved), the location should be surveyed again.
-Positioning measurements also use the maximum RSS compare against the fingerprints.
+I introduce \BRP to do positioning with \BLE, taking into account some of the radio propagation properties of BLE that were described in \chapterref{rss}. 
+Most notably, the method recognises that some beacons may be temporarily blacked-out; they may be received at much lower RSS or not at all due to \mpi, orientation, body shadowing or packet loss.
+Note that beacons who are not observed during either surveying or positioning are treated as having been received with a very low RSS of -105dB.
 
-The following punishment function was found to work well, however could possibly be refined, as long as the properties above hold.
+\aBRP uses the same k-nearest-neighbour approach as the previous methods, however since it does not calculate distance between a fingerprint and the measurement in a multi-dimensional signal space, it intuitively makes more sense to talk about a \define{penalty function} in this context.
+Instead of calculating distances, the function gives penalty points for each way in which a fingerprint does not agree with a positioning measurement.
+This syntactic difference does not change its semantics however: penalties are calculated for each fingerprint in the database, and the ones with the lowest penalties are selected to be averaged.
+
+\BRP recognises that, once during surveying the maximum RSS $s_i$ in an area has been determined for a certain beacon, it is unlikely that during positioning a much higher RSS $p_i$ will be measured at that point\footnote{I experimented whether taking the 95th or 99th percentile would give me better results than the maximum, however there was no obvious advantage.}.
+This means that $p_i \gg s_i$ (where $s_i$ is the value stored during surveying and $p_i$ the value measured during positioning, for beacon $i$) should result in a large penalty.
+On the other hand, having measured a much lower RSS may be the result of \mpi, antenna orientation, body shadowing, or packet loss and is not a strong indicator that a particular position should be discarded; hence $p_i \ll s_i$ should not carry a large penalty.
+If the measured RSS is close to the surveyed RSS, obviously the lowest penalty is given.
+
+\Figureref{architecture}{rss-cloud} shows how $s_i$ relates to $p_i$ for a single location.
+The figures show that $p_i$ is on average a couple of dB lower than $s_i$; it shows that my assumption that $p_i$ is not much higher than $s_i$ is correct, and shows that there are many situations where $p_i \ll s_i$.
+The shorter the measurement, the lower the $p_i$ on average, which is to be expected since $p_i$ is the maximum for all packets, and a shorter listening period will give a smaller maximum on average.
+The points on the left side, where $p_i$ = -105dB indicate those situations when a certain beacon was not observed during the listening interval.
+
+The following penalty function was found to work well in all experiments done in this report.
+It is based on $d_i$, which is the difference between $p_i$ and $s_i$.
+A positive $d_i$ indicates that the measured RSS during positioning is larger than the RSS surveyed for a candidate location.
 \begin{equation}
     L = \begin{cases}
-        |S_i - s_i| \times 1000     & \text{if } s_i - S_i > 3 \\
-        |S_i - s_i|                 & \text{if } 0 < s_i -S_i \leq 3 \\
-        |S_i - s_i| \times 0.001    & \text{if } -10 < s_i-S_i \leq 0 \\
-        |S_i - s_i| \times 0.125    & \text{if } s_i-S_i \leq -10 
+        |d_i| \times 100000 +3.042  & \text{if } d_i > 3dB \\
+        |d_i| +0.042                & \text{if } 0dB < d_i \leq 3dB \\
+        |d_i+4.2| \times 0.01       & \text{if } -10dB < d_i \leq 0dB \\
+        |d_i| \times 0.125          & \text{if } d_i \leq -10dB 
     \end{cases}
     \label{eq:architecture-BRP-punishment}
 \end{equation}
+This penalty function is shown in \figureref{architecture}{penalty} and compared to the (scaled) Euclidean distance function.
+
+The function can be understood by realising that for $d_i > 0dB$, large and very large penalties are given.
+For $d_i < -10dB$ penalties start with a large offset, but increase only slowly.
+The part in between has very low penalties with a minimum of 0 at $d_i = -4.2$.
+This is the average $d_i$ found when listening for 2 seconds.
+
+Many of the penalty offsets, factors and cut-offs in the \aBRP penalty function have been discovered by manual experimentation.
+The function has been optimised for performance on the 2 second listening interval, however while keeping performance in other situations in mind as well.
+Considering the changes in behaviour between these versions, as shown in \figureref{architecture}{rss-cloud}, optimising for other listening intervals will probably lead to other parameters.
+Further research will have to show whether a version that dynamically adapts to the listening interval, or explicitly takes unobserved beacons into account, is feasible.
+
+\subsection{\BRP with Orientation (\aBRP-O)}
+Taking orientation into account in \aBRP, in the same way that SSD-O does for SSD, is an obvious extension.
+It should be noted however that \aBRP is specifically designed to have a certain resistance to signal drops, including those from orientation.
+The expectation therefore is that \aBRP-O will bring less benefit to \aBRP that SSD-O brings to SSD.
+
+Whereas SSD-O was found to work best with $\alpha$ = 60\textdegree, in \aBRP-O 90\textdegree was found to work best.
 
 \subsection{\BRP with Radio Propagation Model (\aBRP-RPM)}
 Whereas \aBRP uses a surveyed database of fingerprints, \aBRP-RPM estimates the maximum RSS on a specific location using a radio propagation model.
@@ -231,12 +290,19 @@ I will look into this in \sectionref{architecture}{dying-beacons}.
 
 It is also of interest that \aBRP and SSD(-O) have errors no different locations; a combination of the two could be used to further improve positioning, although the way in which to make this combination needs further research.
 
+\subsection{\BRP with Orientation}
+\fig{\gnuplot{architecture}{brp-o-parameter-effect}{Positioning errors using SSD-O}}
+As expected, \aBRP-O does not give the same performance benefits as SSD-O, however still performs better than \aBRP.
+
+As \figureref{architecture}{brp-o-parameter-effect} shows, \aBRP-O works best with a 
+
+
 \subsection{\BRP-Radio Propagation Model}
 \aBRP-RPM performs twice as bad as SSD and \aBRP, however the main advantage is that no surveying has to be done, and the database is extremely small; it only needs to contain information on each beacon's location and transmit power.
 Efficiently encoded this information is 12 bytes\footnote{
     Assume we want a world-wide coordinate system with a resolution in the cm-range.
-    Earth's surface area is 510,072,000 $km^2$; any usable coordinate is between -10km and +200km in height, giving 107,115,120,000 $km^3$, or 1e26 $cm^3$ to address -- any errors due to the earth not being flat fall within error margins.
-    11 bytes covers 3e26 addresses.
+    Earth's surface area is 510,072,000 $km^2$; any usable coordinate is between -10km and +200km in height, giving 107,115,120,000 $km^3$, or $10^{26} cm^3$ to address -- any errors due to the earth not being flat fall within error margins.
+    11 bytes covers $3\times 10^{26}$ addresses.
     The RSS value is only 1 byte, hence 12 byte is enough.
 }, so a beacon could include this information in its advertising packet, completely removing the need for a database.
 

@@ -1,7 +1,7 @@
 from __future__ import print_function
 STEPS=range(1,11)
 BEACONS = [1,2,5,10,15,20]
-DROPRATE=.4
+DROPRATE=.38
 for i in STEPS:
     print("& %d"%i, end=" ")
 print("\\\\ \\hline")

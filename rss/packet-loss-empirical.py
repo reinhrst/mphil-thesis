@@ -1,67 +1,54 @@
 from __future__ import print_function
 import sys, hashlib
-STEPS=[1, 2, 4, 6, 8, 10, 13, 17, 20]
-RUNS=20
+STEPS=range(1,11)
 BEACONS = [1,2,5,10,15,20]
 
-f = open(sys.argv[1])
+filename = sys.argv[1]
 
-currentpos = None
-firstsecond = True
-lastsecond = None
-packets = []
+FREQ = 9.5
 
-db = []
-
-for line in f:
-    if len(line.strip()) == 0 or line[0] == '#':
-        continue
-    parts = line.split()
-    time = float(parts[0])
-    second = int(time/2)
-    channel = int(parts[4])
-    beacon = parts[5]
-    pos = map(int,parts[2:4])
-    if(pos != currentpos):
-        firstsecond=True
-        lastsecond = second
-        currentpos = pos
-    if second != lastsecond:
-        if firstsecond:
-            firstsecond = False
-        else:
-            db.append(packets)
-        packets = []
-        lastsecond = second
-    packets.append({"intervals": (time % 1)*20, "beacon": beacon, "channel":channel})
-
+def default(d, k, v):
+    if not d.has_key(k):
+        d[k] = v
             
-ALLBEACONS = ["0x%02x" % (i+1) for i in range(20)]
-
-def hashme(v1):
-    h = hashlib.md5()
-    h.update(v1)
-    return h.digest()
-
 for i in STEPS:
     print("& %d"%i, end=" ")
 print("\\\\ \\hline")
 for b in BEACONS:
+    tdb = {}
+    db = {}
+
+    starttime = None
+
+    f = file(filename % b)
+    for line in f:
+        if line[0] == "#":
+            continue
+        parts = line.split()
+        time = float(parts[0])
+        if starttime == None:
+            starttime = int(time+1)
+        bucket = int((time-starttime)*FREQ)
+        beacon = parts[3]
+        for i in range(20):
+            if bucket - i >=0:
+                default(tdb,bucket-i,{})
+                default(db,bucket-i,20)
+                if not tdb[bucket-i].has_key(beacon):
+                    tdb[bucket-i][beacon] = 1
+                    if len(tdb[bucket-i]) == b:
+                        db[bucket-i] = i
+
     print("%2d beacon"%b, end="")
     if b > 1:
         print("s", end=" ")
     else:
         print(" ", end=" ")
+
+    buckets = sorted(db.keys())[:-20]
+    mydb = [db[buck] for buck in buckets]
     for i in STEPS:
-        allpacketsseen = 0
-        for run in range(RUNS):
-            interestedbeacons = set(sorted(ALLBEACONS, key=lambda beacon: hashme("%s %d"%(beacon,run)))[:b])
-            for packets in db:
-                interestedpackets = filter(lambda p: p["intervals"] < i and p["beacon"] in interestedbeacons, packets)
-                beacons = set([p["beacon"] for p in interestedpackets])
-                if len(beacons) == len(interestedbeacons):
-                    allpacketsseen += 1
-        rate = 100-float(allpacketsseen)/len(db*RUNS)*100
+        rate = 100 - len(filter(lambda e: e < i, mydb)) / float(len(mydb))*100
         print("\\packetlosscell{",end="")
         if rate < 1:
             print("%4.02f" % rate , end="")
@@ -70,6 +57,6 @@ for b in BEACONS:
         elif rate < 99.5:
             print("%2.0f" % rate , end="")
         else:
-            print(" 100" , end="")
+            print("100" , end="")
         print("\\%}",end=" ")
     print("\\\\ \\hline")

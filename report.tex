@@ -76,7 +76,7 @@
 }
 \newcommand{\makeandinput}[2]{
     \immediate\write18{make -j4 -C #1 #2.tex}
-    \input{#1/#2}
+    \input{#1/#2.tex}
 }
 \newcommand{\fig}[1]{
     \begin{figure}[ht]
