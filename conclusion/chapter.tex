@@ -1,0 +1,12 @@
+\chapter{Conclusion}
+\wordcount{conclusion}
+
+\section{Further research}
+\Sectionref{rss}{packet-loss} and \chapterref{architecture} show that packet loss and unobserved beacons is a real problem in BLE positioning.
+I choose to treat unobserved beacons as if a single packet with an RSS of -105dB, just below the minimum had been observed.
+Since \sectionref{rss}{busyroom} shows that major packet loss already happens at much higher signal powers, it may make more sense to choose a higher signal strength if a beacon is not observed.
+It is probably very interesting to see how this influences the results, as well as investigate alternative methods to deal with unobserved beacons, such as ignoring a beacon altogether if it was unobserved during either surveying or positioning.
+Ideally this would be done in a location large enough that sometimes not observing a beacon is correct behaviour, because the beacon has gone out of range.
+
+\Sectionref{architecture}{measurements} shows that the average of the position returned by SSD-O and \aBRP-O gives a better result than either one alone.
+It is interesting to see if a weighted average would improve on this, possibly one that uses the penalties calculated for both methods to determine the weights.

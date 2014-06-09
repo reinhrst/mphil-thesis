@@ -11,12 +11,16 @@ set xlabel "Error (m)"
 min(a,b) = (a > b ? b : a)
 error(x,y,x1,y1,x2,y2) = ((x-(x1+x2)/2)**2 + (y-(y1+y2)/2)**2)**.5
 
+
 plot target u ( $5*.6):(1.0/points) s cumul t "Random", \
      ''     u ( $9*.6):(1.0/points) s cumul t "SSD", \
      ''     u ($13*.6):(1.0/points) s cumul t "SSD-O", \
      ''     u ($17*.6):(1.0/points) s cumul t "BRP", \
      ''     u ($21*.6):(1.0/points) s cumul t "BRP-O", \
-     ''     u ($24*.6):(1.0/points) s cumul t "BRP-RPM"
+     ''     u ($25*.6):(1.0/points) s cumul t "BRP-RPM" lt 9, \
+     ''     u (error($1,$2, $7, $8,$15,$16)*.6):(1.0/points) s cumul t "SSD+BRP", \
+     ''     u (error($1,$2,$11,$12,$19,$20)*.6):(1.0/points) s cumul t "SSD-O+BRP-O"
+
 
 
 

@@ -85,7 +85,10 @@ def calc_penalties(positioning, candidate_position):
             if len(interval) == 0:
                 interval = "1"
             interval = int(interval)
-            heading_col = HEADING_BASE + int((positioning["heading"]+interval/2)%360/interval)*interval*2
+            h = hashlib.md5();
+            h.update(repr("".join(["%f"%positioning[id][MEAN] for id in fingerprint])))
+            random_offset = 360 - (int(h.hexdigest()[:6],16)%interval)
+            heading_col = HEADING_BASE + int((positioning["heading"]+random_offset)%360)*2
             result[method] = sum([(positioning[id][MEAN]-fingerprint[id][heading_col])**2 for id in fingerprint])**.5 + EPSILON
         if method[:len("BRP-C")] == "BRP-C":
             compass_error = int(method[len("BRP-C"):])
@@ -97,7 +100,10 @@ def calc_penalties(positioning, candidate_position):
             if len(interval) == 0:
                 interval = "1"
             interval = int(interval)
-            heading_col = HEADING_BASE_BRP + int((positioning["heading"]+interval/2)%360/interval)*interval*2
+            h = hashlib.md5();
+            h.update(repr("".join(["%f"%positioning[id][MEAN] for id in fingerprint])))
+            random_offset = 360 - (int(h.hexdigest()[:6],16)%interval)
+            heading_col = HEADING_BASE + int((positioning["heading"]+random_offset)%360)*2+1
             result[method] = sum([calc_BRP(positioning[id][MAX],fingerprint[id][heading_col]) for id in fingerprint]) + EPSILON
     return result
 

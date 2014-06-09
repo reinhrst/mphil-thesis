@@ -1,7 +1,7 @@
 set key bottom title 'Fingerprint based on angle' width -16 vertical maxrows 2
 set xrange [0:8]
 set ylabel "Median error (m)"
-set xlabel "Pre-calculated fingerprint database resolution (\\textdegree)"
+set xlabel "Number of pre-calculated databases per 360\\textdegree"
 if (type eq "ssd") {
     set yrange [.75:1.3]
     set ytics ( "0.8" 0.8, \
@@ -17,15 +17,15 @@ if (type eq "ssd") {
     starty = .7
     dy = 0.06
 }
-set xtics ("1" 0, \
-           "2" 1, \
-           "5" 2, \
-           "10" 3, \
-           "30" 4, \
-           "60" 5, \
+set xtics ("2" 0, \
+           "3" 1, \
+           "4" 2, \
+           "6" 3, \
+           "12" 4, \
+           "36" 5, \
            "90" 6, \
-           "120" 7, \
-           "180" 8)
+           "180" 7, \
+           "360" 8)
 
 startx = -0
 dx = .15
@@ -46,12 +46,12 @@ set object 2 polygon from startx,starty-.01 \
     front noclip
 
 
-plot target u 0:1 w lp title "30\\textdegree", \
-     ""     u 0:2 w lp title "45\\textdegree", \
-     ""     u 0:3 w lp title "60\\textdegree", \
-     ""     u 0:4 w lp title "75\\textdegree", \
-     ""     u 0:5 w lp title "90\\textdegree", \
-     ""     u 0:6 w lp title "120\\textdegree" lt 9, \
-     ""     u 0:7 w lp title "180\\textdegree", \
-     ""     u 0:8 w lp title "360\\textdegree", \
+plot target u (8-$0):1 w lp title "15\\textdegree", \
+     ""     u (8-$0):2 w lp title "22.5\\textdegree", \
+     ""     u (8-$0):3 w lp title "30\\textdegree", \
+     ""     u (8-$0):4 w lp title "37.5\\textdegree", \
+     ""     u (8-$0):5 w lp title "45\\textdegree", \
+     ""     u (8-$0):6 w lp title "60\\textdegree" lt 9, \
+     ""     u (8-$0):7 w lp title "90\\textdegree", \
+     ""     u (8-$0):8 w lp title "180\\textdegree", \
 

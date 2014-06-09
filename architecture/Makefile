@@ -24,8 +24,12 @@ short-walk-3-%s.data: generate-fingerprint-database.py ../measurements/arch-sw02
 short-positioning-stats-%s.data: position.py ${FPD} short-walk-1-%s.data short-walk-2-%s.data short-walk-3-%s.data
 	python $< '${DML}' ${FPD} short-walk-1-$*s.data short-walk-2-$*s.data short-walk-3-$*s.data >/dev/null 2> $@
 
-positioning-compass-error.data: position.py ${FPD} walk-1.data walk-2.data walk-3.data
-	python position.py "SSD $$(seq 0 10 180 | sed 's/^/SSD-C/' | tr '\n' ' ')" ${FPD} walk-1.data walk-2.data walk-3.data >$@ 2>/dev/null
+positioning-compass-error-%.data: position.py ${FPD} walk-1.data walk-2.data walk-3.data
+	python position.py "$(shell echo $* | tr a-z A-Z) $$(seq 0 10 180 | sed 's/^/$(shell echo $* | tr a-z A-Z)-C/' | tr '\n' ' ')" ${FPD} walk-1.data walk-2.data walk-3.data >$@ 2>/dev/null
+
+positioning-compass-error-%-gnuplot.tex: positioning-compass-error.gnuplot positioning-compass-error-%.data
+	gnuplot -e  "set terminal epslatex color; set output '$@'; target='$(word 2,$+)';type='$(shell echo $* | tr a-z A-Z)';" $<
+	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
 positioning-heading-width-%.data positioning-stats-heading-width-%.data: position.py fingerprint-database-heading-width-%.data walk-1.data walk-2.data walk-3.data
 	python $< 'Random ${DML}' fingerprint-database-heading-width-$*.data walk-1.data walk-2.data walk-3.data > positioning-heading-width-$*.data 2> positioning-stats-heading-width-$*.data

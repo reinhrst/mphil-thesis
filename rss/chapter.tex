@@ -43,7 +43,7 @@ The advertising channels are used for advertisement and discovery of services, o
 Once a connection is made, the advertising channels are not being used any more, instead (a subset of) the other 37 channels are used.
 
 A possible way to build a positioning system using \BLE is to use the above mentioned capability to broadcast small pieces of information on the advertising channels.
-The information sent is some sort of unique and recognisable beacon ID.
+The information sent is some sort of unique and recognisable \bid.
 This is the system I will focus on in this report.
 Alternative systems are possible, including ones where a connection is made, but they add cost in complexity and possibly energy, and I do not believe them to have any advantages.
 In comparison, the BLE Proximity Profile (PXP) uses a connection, but is only interested in the distance to a single device, where as the iBeacon technology uses the advertising channels.
@@ -65,7 +65,7 @@ Later in this chapter I show that in other situations, realising we are dealing 
 \subsection{Smartphone support}
 \label{sec:rss-smartphone}
 A typical device can only send or receive on one channel at any time.
-The Bluetooth 4.0 specification \citep{bluetooth40spec} specifies that the transmitter broadcasts the same advertising packet on (a subset of) channels 37, 38 and 39, each next channel's transmission beginning less than 10ms after the previous channel. 
+The \BTspec \citep{bluetooth40spec} specifies that the transmitter broadcasts the same advertising packet on (a subset of) channels 37, 38 and 39, each next channel's transmission beginning less than 10ms after the previous channel. 
 No such requirement is put on receivers, and they may use their own strategy to decide when to listen to which advertising channel.
 Switching between channels is preferred over listening on a single channel, since a single channel may suffer from interference and some transmitter may not be heard on that channel; something we can see in multiple occasions in \sectionref{rss}{busyroom}.
 
