@@ -134,6 +134,18 @@ The same multipath drop pattern is visible in all three runs for one channel, wh
 The green cells show the same channel in different runs, and clearly have a much higher correlation than between different channels (the white cells).
 This suggests that different channels have their \mpids at different locations, something that is to be expected, since the location of the \mpids is dependent on the wave length, thus on the radio frequency.
 
+\fig{\gnuplot{rss}{mpi-feasibility}{Effect of a small lateral shift of the receiver and small changes in the environment on the RSS}}
+
+It is tempting to try to use the \mpids to improve on positioning via RSS; if the drops can be mapped precisely, the combination of the three individual channels could provide a location with much precision.
+For instance, if channel 37 has an RSS of -63dB, channel 38 -50dB and channel 39 -46dB, one could use the information from figure \ref{fig:rss-mpi-split-channels} to find a distance of 1.3m.
+One of the challenges here is that the \mpids are very local, and to create fingerprints for a whole room, measurements have to be taken every couple of centimetres at least in al three dimensions.
+To illustrate this, figure \ref{fig:rss-mpi-feasibility} shows in purple the original measurements, and in red the measurements taken with the receiver put on the other side of the platform, 4cm to the side of where it was in previous runs.
+The same channel in both runs has a Pearson correlation of between 0.83 and 0.88, with a p-value of 0.000, considerably less than the correlation between different runs with the receiver in the same spot.
+Even if such a map had been made however, \mpi is dependent on the environment, and even small changes in the environment (movement of objects or people), may invalidate a map.
+Figure \ref{fig:rss-mpi-feasibility} shows this effect, purple is the base measurement, blue the measurements after some small changes in the environment are made.
+This time the correlations are between 0.48 and 0.66, the same as between different channels in one run.
+These two effects mean that simply creating a map of an environment, even for an environment with just small changes, is not feasible, unless additional techniques are developed to combat the described problems.
+
 \fig{
     \begin{subfigure}[b]{0.5\textwidth}
         \gnuplotscale{rss}{mpi-single-rss-10mm}{1cm}{0.55}
@@ -151,34 +163,13 @@ This suggests that different channels have their \mpids at different locations, 
     \label{fig:rss-mpi-single-rss}
 }
 
-This highly fluctuating RSS value is unhelpful for most positioning methods.
-A single value for the RSS is preferred, with the most important thing not being the absolute RSS value, but the property that the RSS decreases with distance, ideally with 6dB when the distance doubles.
-Figure \ref{fig:rss-mpi-single-rss} shows several strategies we may employ to come to a single RSS value in an environment with \mpi.
-I take averages, the median and the maximum of the received data, over different distance intervals, and compare this to an ideal RSS line.
-I do not take the channel number into account in this process, meaning that it can be done in devices that do not report the channel number for received packets.
-Since the absolute RSS is not important, the ideal RSS line can be shifted up or down, to either fit the average/median data, or the maximum.
-It should be noted that when doing positioning, one can typically not choose a distance interval to average over, since speed information is not easily available, and the user might stand still or walk around, so one should choose a time-interval, and select a strategy that works best in multiple distance cases.
+The fluctuating RSS value is unhelpful for most positioning methods.
+Most positioning methods work by creating a fingerprint map, with RSS values expected to remain more or less the same over time on the same location, and on locations between two spots where fingerprints were collected, the collected RSS values should have a value between those measured in the two surrounding mapping points.
+Ideally the RSS decreases logarithmically with distance; a constant shift in RSS is not important.
+Figure \ref{fig:rss-mpi-single-rss} shows several strategies we may employ to remove RSS fluctuations.
+I take the mean, median and maximum of the received data, over different distance intervals, and compare this to an ideal RSS line.
+Taking this over a distance is artificial, since during positioning one does not know the distance travelled; therefore a method should be chosen that works well with any distance.
 Figure \ref{fig:rss-mpi-single-rss} shows that both average and median follow one another very closely, with sometimes one and sometimes the other being closer to the ideal line, whereas the maximum fits less nicely but is still has nice smoothing properties.
-
-\fig{\gnuplot{rss}{mpi-feasibility}{Effect of a small lateral shift of the receiver and small changes in the environment on the RSS}}
-
-It is tempting to try to use the \mpids to improve on positioning via RSS.
-For instance, if channel 37 has an RSS of -63dB, channel 38 -50dB and channel 39 -46dB, one could use the information from figure \ref{fig:rss-mpi-split-channels} to find a distance of 1.3m.
-One of the challenges here is that the \mpids are very local, and to create fingerprints for a whole room, measurements have to be taken every couple of centimetres at least in al three dimensions.
-To illustrate this, figure \ref{fig:rss-mpi-feasibility} shows in purple the original measurements, and in red the measurements taken with the receiver put on the other side of the platform, 4cm to the side of where it was in previous runs.
-There is some correlation between the signals, however we also see many drops happen at different places, or only in one of the signals.
-The same channel in both runs have a Pearson correlation of between 0.83 and 0.88, with a p-value of 0.000, considerably less than the correlation between different runs with the receiver in the same spot, but more than that between different channels in the same run.
-Even if such a map had been made however, \mpi is dependent on the environment, and even small changes in the environment (movement of objects or people), may invalidate a map.
-Figure \ref{fig:rss-mpi-feasibility} shows this effect, purple is the base measurement, blue the measurements after some small changes in the environment are made.
-Again we see some similarities, but also a lot of differences, with correlations between 0.48 and 0.66, the same as between different channels in one run.
-These two effects mean that simply creating a map of an environment, even for an environment with just small changes, is not feasible, unless additional techniques are developed to combat the described problems.
-
-One area in which I believe one could take advantage of \mpi, is in motion detection, although it may be of limited use.
-Since small movements result in large RSS changes, a device can detect if it moves.
-However since small changed in the environment influence the position of these drops (see also \sectionref{rss}{busyroom}, a changing RSS should probably be interpreted as movement in general, not necessarily of the device itself.
-If one were to attempt this, it were to help greatly if packages from different channels could be observed, either because the receiving device exposes these, or because beacons are known to only advertise certain content on certain channels\footnote{It should be noted that this is against the Bluetooth 4.0 and 4.1 specification; I do not believe any application would break if one were to transmit different messages on different channels.}.
-
-Whether this is feasible is an area for further research.
 
 \section{Orientation}
 \label{sec:rss-rot}
@@ -255,14 +246,14 @@ All environments show some drop locations, where the RSS drops by 10-20dB within
     \label{fig:rss-busyroom}
 \end{figure}
 
-In order to investigate how people and objects moving around a room influence RSS, 20 beacons were placed in a small meeting room (3.5 by 4.5m) together with 2 stationary iPads as receivers on tables, while a standing lunch was being served there.
+In order to investigate how people and objects moving around a room influence RSS, 20 beacons were placed in a small meeting room (3.5 by 4.5m) together with a stationary iPad mini as receiver on a table, while a standing lunch was taking place.
 All tables and chairs were moved to the side before the start of measurements.
-\Figureref{rss}{busyroom} shows the RSS over time for six beacons on one receiver, and how many packets of were received on each channel; the other beacons and the other receiver show similar data.
+\Figureref{rss}{busyroom} shows the RSS over time for six beacons, and how many packets of were received on each channel; the other beacons show similar data.
 Beacons 1 and 2 were placed in the ceiling left and right of the receiver, beacons 3 and 4 on the floor.
 Beacon 5 was placed just behind the receiver, and beacon 6 accross the room, both at table height.
-Even though beacon 6 was furthest away, the higest RSS of all beacons is received from this one; this may be because it is in front of the receiver on a direct line of sight.
+Even though beacon 6 was furthest away, the highest RSS of all beacons is received from this one; this may be because it is in front of the receiver on a direct line of sight.
 
-Five periods were marked using a stopwatch, these are shown in the graphs:
+Five periods were marked using a wristwatch, these are shown in the graphs:
 \begin{itemize}
     \item Period 1 (12:41-12:59): The lunch is being built up, occasionally people enter and leave the room, most of the time there are one or two people in the room.
         The door to the room in open.
@@ -274,16 +265,12 @@ Five periods were marked using a stopwatch, these are shown in the graphs:
 \end{itemize}
 
 The two periods with an empty room, 3 and 5, are characterised in the graphs in \figureref{rss}{busyroom} by relatively low variance in RSS per channel, whereas period 2, when a lot of people are moving around, shows high variance, with periods 1 and 4 being somewhere in between.
-The differences between period 3 and 5 show the influence of the furniture on the RSS, where major differences between period 1 and 3 are caused by the door.
+The differences between period 3 and 5 show the influence of the furniture on the RSS, where major differences between period 1 and 3 are caused by the door being open or closed.
 This latter effect is especially clear with beacons 1 and 3, which are respectively in the ceiling and on the floor behind the door.
 
 The beacons broadcast at 10Hz\footnote{The beacons were set to broadcast at 10Hz, however measurements actually show a 105ms delay between packets, so 9.5Hz is more accurate. This small discrepancy does not influence the conclusions however, and throughout this report I will use 10Hz as the broadcasting rate.}, however in no period more than 6 advertising packets per second are received on average.
-The environment in which the test was done is very noisy in the 2.4GHz band; in addition to numerous \wifi access points, there are many other beacons in the rooms around this one. 
-Even though the 20 beacons used in this test combined broadcast 200 packets per second\footnote{This is per channel; however since a receiver only listens at one channel at any time, for a received 200 packets in total can be assumed.}, only 82.7 packets from these beacons were received on average, plus a 58.1 packets from other beacons not part of the test.
-
-It is interesting to note the huge difference in the number of packets received per second between periods for some beacons.
-It shows that when the RSS drops below -80dB, less packets are received.
-It may be important to take this into account when taking the mean or median of a signal, especially one with a large variance, such as in period 2; since many packets under -80dB are not received, the calculated mean or median that does not take these packets into account, will be too high.
+In the next section I look into packet-loss in more detail, but it is interesting to note the large differences in packet-loss between channels, and between periods.
+It shows that when the RSS drops below -80dB, less (or hardly any sometimes) packets are received.
 
 \section{Packet loss}
 \label{sec:rss-packet-loss}

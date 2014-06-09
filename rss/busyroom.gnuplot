@@ -52,7 +52,6 @@ set label 3 "\\huge{3}"  at (p2+p3)/2,ly1 center
 set label 4 "\\large{4}" at (p3+p4)/2,ly1 center
 set label 5 "\\huge{5}"  at (p4+p5)/2,ly1 center
 
-
 set palette defined (37 1 0 0, 38 0 1 0, 39 0 0 1)
 plot \
  filename u (bin($1-STARTTIME,60)):(1.0/60 * ($3 < 40)) s freq with boxes fs solid border -1 ls 1 lc rgb 'blue'  axis x1y2 notitle, \
