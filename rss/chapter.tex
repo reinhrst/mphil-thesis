@@ -138,7 +138,7 @@ This suggests that different channels have their \mpids at different locations, 
 
 It is tempting to try to use the \mpids to improve on positioning via RSS; if the drops can be mapped precisely, the combination of the three individual channels could provide a location with much precision.
 For instance, if channel 37 has an RSS of -63dB, channel 38 -50dB and channel 39 -46dB, one could use the information from figure \ref{fig:rss-mpi-split-channels} to find a distance of 1.3m.
-One of the challenges here is that the \mpids are very local, and to create fingerprints for a whole room, measurements have to be taken every couple of centimetres at least in al three dimensions.
+One of the challenges here is that the \mpids are very local, and to create fingerprints for a whole room, measurements have to be taken every couple of centimetres at least in all three dimensions.
 To illustrate this, figure \ref{fig:rss-mpi-feasibility} shows in purple the original measurements, and in red the measurements taken with the receiver put on the other side of the platform, 4cm to the side of where it was in previous runs.
 The same channel in both runs has a Pearson correlation of between 0.83 and 0.88, with a p-value of 0.000, considerably less than the correlation between different runs with the receiver in the same spot.
 Even if such a map had been made however, \mpi is dependent on the environment, and even small changes in the environment (movement of objects or people), may invalidate a map.
@@ -177,7 +177,7 @@ Figure \ref{fig:rss-mpi-single-rss} shows that both average and median follow on
 The direction in which a user is facing while using a smartphone to position, also has an influence on the RSS.
 This is for two reasons.
 First, the phone itself: rotating the iPhone leads to the antenna being more or less aligned with the signal, and leads to certain parts of the phone blocking the radio signal.
-Second, the user's body may either block or reflect the signal, leading to signal gain or loss.
+Second, the user's body may either absorb or reflect the signal, leading to signal gain or loss.
 
 To explore these effects I built a device to rotate the \device around its axis: an small construction was added to the back of an office chair, such that a \device rotates around its axis when the chair rotates.
 Using the built-in compass, the heading was recorded together with the RSS.
@@ -204,7 +204,7 @@ Then I sat on the chair with my body around 15 cm from the \device, and did the 
 }
 
 \Figureref{rss}{rot} shows in red the average RSS per 0.5 second, plotted against the direction the phone is facing, while I lie under the chair.
-0\textdegree{} means that the back of phone is the facing the beacon, while at 180\textdegree{} the screen if facing the beacon.
+0\textdegree{} means that the back of phone is the facing the beacon, while at 180\textdegree{} the screen is facing the beacon.
 Since on the iPhone 5 the \wifi/Bluetooth antenna is mounted against the back of the phone, next to the camera and flash\urlref{http://www.ifixit.com/Guide/iPhone+5+Wi-Fi+Antenna+Replacement/10897}, I expect reception to be best with that side facing the transmitter.
 The blue points show the same rotation with my body on the chair, influencing the signal.
 Since I'm facing the screen, at 0\textdegree the \device is between me and the beacon, while at 180\textdegree I am between the beacon and the \device.
@@ -250,7 +250,7 @@ In order to investigate how people and objects moving around a room influence RS
 All tables and chairs were moved to the side before the start of measurements.
 \Figureref{rss}{busyroom} shows the RSS over time for six beacons, and how many packets of were received on each channel; the other beacons show similar data.
 Beacons 1 and 2 were placed in the ceiling left and right of the receiver, beacons 3 and 4 on the floor.
-Beacon 5 was placed just behind the receiver, and beacon 6 accross the room, both at table height.
+Beacon 5 was placed just behind the receiver, and beacon 6 across the room, both at table height.
 Even though beacon 6 was furthest away, the highest RSS of all beacons is received from this one; this may be because it is in front of the receiver on a direct line of sight.
 
 Five periods were marked using a wristwatch, these are shown in the graphs:
@@ -269,46 +269,45 @@ The differences between period 3 and 5 show the influence of the furniture on th
 This latter effect is especially clear with beacons 1 and 3, which are respectively in the ceiling and on the floor behind the door.
 
 The beacons broadcast at 10Hz\footnote{The beacons were set to broadcast at 10Hz, however measurements actually show a 105ms delay between packets, so 9.5Hz is more accurate. This small discrepancy does not influence the conclusions however, and throughout this report I will use 10Hz as the broadcasting rate.}, however in no period more than 6 advertising packets per second are received on average.
-In the next section I look into packet-loss in more detail, but it is interesting to note the large differences in packet-loss between channels, and between periods.
+In the next section I look into packet loss in more detail, but it is interesting to note the large differences in packet loss between channels, and between periods.
 It shows that when the RSS drops below -80dB, less (or hardly any sometimes) packets are received.
 
 \section{Packet loss}
 \label{sec:rss-packet-loss}
 According to the \BTspec, an advertising packet should be sent on all three advertising channels within a short time.
-This means that a beacon advertising at 10Hz (the beaconing rate) sends 10 packets per second on each of the three channels.
+This means that a beacon advertising at 10Hz (the beaconing rate) sends 10 packets per second on each of the three channels, heaving a 100ms \define{beaconing interval}.
 
 A \device listening for advertisements typically listens on one channel at a time, but switches quickly between the channels, since (as previous sections show) not all devices can be received equally well on all channels at all times.
-If a \device were to switch channels at exactly the same moment as a beacon, it could, in theory, receive all 30 packets, however since these two are normally not synchronised, one can expect a 1/3 chance that a \device is listening on the channel the beacon is transmitting on, resulting in a maximum of 10 receivable packets per second.
+If a \device were to switch channels at exactly the same moment as a beacon, it could, in theory, receive all 30 packets, however since these two are normally not synchronised, one can expect a 1/3 chance that a \device is listening on the channel the beacon is transmitting on, resulting in a maximum of 10 receivable packets per second\footnote{Inspection of the packet logs for the experiments done in this section, shows that sometimes two packets on different channels are received in very quick succession (much less than 100ms delay), however this happens even more often for two packets on the same channel, suggesting that either the beacons sometimes send at a different rate, or (more likely in my opinion) the timestamp put on the packet by the OS may be off by a couple of tens of ms. This suggests however that two packets sent on different channels as part of the same beaconing-interval are never received by the \device.}.
 
 There may be many reasons however why fewer that 10 packets are received.
-Either a packet may be, because of \mpi, orientation or signal blocking, not be receivable at the location of the \device, or there may be interference from other transmitters sharing the same frequency, there may have been general radio interference, or the \device may not have been listening at the right time (it was switching channels half way the packet, the \device may have small periods it does not listen to save energy, or possibly the OS discards some packets).
+Either a packet may, because of \mpi, orientation or signal blocking, not be receivable at the location of the \device, or there may be interference from other transmitters sharing the same frequency, there may have been general radio interference, or the \device may not have been listening at the right time (it was switching channels half way the packet, the \device may have small periods it does not listen to save energy, or possibly the OS discards some packets).
 When I talk about packet loss, it is the difference between the number of packets sent on each channel, and the number of packets received in total; so if 9 packets are received per second from a 10Hz beacon, there is 10\% packet loss.
 
 As mentioned in \sectionref{rss}{smartphone}, an iOS device misses more packets if \BLE listening is active for a longer time.
-In my experiments, BLE listening is restarted every 10 seconds.
-This does not lead to an increased packet loss at the point of restarting BLE, and avoids the situation where more packets are being missed after a while.
+To counter this, I restart BLE listening every 10 seconds in all experiments; I do not see increased packet loss at the time of restarting.
 
 If packets are not received consistently, this may impact the positioning ability.
 There is no way for the device to know whether a beacon was not observed because it is out of range, or because the packets sent by the beacon were lost.
-In my experiments beacons transmit at 10Hz; beacons may be set to advertise at a lower frequency in order to save energy and prolong battery life.
-If not all packets are observed by a listening device, beacons that transmit at low frequencies can easily be missed, unless one is listening for a long period.
+In my experiments beacons transmit at 10Hz.
+Beacons may be set to advertise at a lower rate in order to save energy; these beacons are obviously more easily missed if packets are lost.
 
 To investigate packet loss I used a single beacon transmitting at 1Hz.
-The measurements were done outside in a field, with no other known transmitters nearby.
+The measurements were done outside in a field, with no other known transmitters nearby, distance between beacon and \device 15 centimetres.
 In 136 seconds, 12 times 1 packet was not received, 7 times 2 packets, and twice 3 packets in a row, resulting in a total of 32 lost packets, 23.5\%.
 
 \fig{\gnuplot{rss}{packet-loss}{Packet loss for different numbers of beacons.}}
-Next I repeated the experiment with first a single beacon set to transmit at 10Hz (as discussed previously, the actual transmit frequency of these beacons is 9.5Hz, this has been taken into account in the calculations in this section), then multiple beacons, all set to 10Hz.
+Next I repeated the experiment with first a single beacon set to transmit at 10Hz\footnote{As discussed previously, the actual transmit frequency of these beacons is 9.5Hz. In the text I will continue to call them 10Hz beacons, because 10Hz and 100ms are easier to reason with than 9.5Hz rate and 105ms intervals, and because 10Hz is the setting the beacons were set to. All packet loss calculations however in this section have been done with the actual rate of 9.5Hz.}, then multiple beacons, all set to 10Hz, all within a 20cm radius of the \device.
 Each test was ran for one minute; the results can be seen in \figureref{rss}{packet-loss}.
 It shows a packet loss of between 27 and 38\%, with a generally a higher packet loss for a larger number of beacons.
-This can be explained because packets from different beacons may collide when sent at the same moment, resulting in the loss of one or both packets.
+This can be explained because packets from different beacons may collide when sent at the same moment.
 
 \begin{table}
     \begin{tabular}{r | c | c | c | c | c | c | c | c | c | c |}
         & \multicolumn{10}{c |}{listening time in transmission intervals} \\
         \makeandinput{rss}{packet-loss-generated}
     \end{tabular}
-    \caption{Expected chance that not all beacons have been observed at different listening intervals, with a random packet-loss of 38\%}
+    \caption{Expected chance that not all beacons have been observed at different listening intervals, with a random packet loss of 38\%}
     \label{tbl:rss-packet-loss}
 \end{table}
 
@@ -320,13 +319,13 @@ This can be explained because packets from different beacons may collide when se
     \caption{Measured chance that not all beacons have been observed at different listening intervals}
     \label{tbl:rss-packet-loss-empirical}
 \end{table}
+
 For positioning it is important to know how long one has to listen to be reasonably sure that, if a beacon has not been observed, it can not be observed in that location.
-\Tableref{rss}{packet-loss} shows the chance of not observing a beacon that is present, if there is a random 38\% chance that a packet is lost, at different listening intervals, where listening intervals are measured in beacon intervals: a listening interval of 3 means three times the time between 2 advertising packets from a single beacon, or 0.3 seconds if the beacon broadcasts at 10Hz.
-\Tableref{rss}{packet-loss-empirical} shows in which percentage of the measured cases we failed to observe all beacons; it shows that although the packet loss with 20 beacons is the same 38\%, the chances of missing at least one beacon are much higher.
-This indicates that not each package has the same chance of being missed (something that we also see in \figureref{rss}{busyroom}, where packages from some beacons are lost more often than others), even though all beacons were spread around the \device, with a clear line-of-sight, all within 20 centimetres.
-This shows that a long listening interval is needed to have a high certainty that all beacons have been received at least once.
+\Tableref{rss}{packet-loss} shows the chance of not observing a beacon that is present, if there is a random 38\% chance that a packet is lost, at different listening intervals, where listening intervals are measured in beacon intervals, i.e.\ a listening interval of 3 means 300ms when 10Hz beacons are used.
+\Tableref{rss}{packet-loss-empirical} shows in which percentage of the measured cases we failed to observe all beacons; it shows that although the packet loss with 20 beacons is the same 38\%, the chances of missing at least one beacon in multiple listening intervals are much higher.
+The reason for this is that not each package has the same chance of being missed (something that we also see in \figureref{rss}{busyroom}, where packages from some beacons are lost more often than others).
+This shows that a long listening interval is needed for a high certainty that all beacons have been received at least once.
 
 The tests above were done in an area with minimal additional radio interference.
 Looking at a more noisy environment, such as the one of \sectionref{rss}{busyroom}, there is 59\% packet loss, and even after 5.25 seconds, 50 beacon-interval at 9.5Hz, in 1\% of cases not all beacons have been observed.
 This can probably be attributed to interference from \wifi and other Bluetooth devices, as well as there not always being a line-of-sight between beacon and \device.
-

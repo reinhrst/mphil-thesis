@@ -3,24 +3,6 @@
 
 \wordcount{architecture}
 
-Much research has been done on positioning using \wifi signals (ref: RADAR, EWKNN, etc), and many current \devices use the \wifi positioning system (WPS) to augment the GPS, or in places where GPS is not available.
-WPS is based on measuring the signal strength of access points, and comparing these values with known values for different locations in the area.
-The known values can be calculated using ray-tracing (RADAR), or can be surveyed at some earlier point in time.
-The surveying for WPS was initially done from cars, and although this method of data collection still happens, manual submissions and usage of the system also feed surveying information back into the system\urlref{http://www.skyhookwireless.com/location-technology/coverage.php}.
-
-It is important to differentiate between two types of location determination: \define{one-shot positioning}, where a single measurement is used to determine one's location, and \define{tracking}, where a set of measurements over time is used.
-Tracking will obviously lead to higher accuracy, since the measurements can be related over time through business rules; for instance, when indoors it is unlikely that two measurements taken 1 second apart, were taken at more than three meters apart.
-As another example, the algorithm may infer on which side of the road a \device is most likely to be, if it is moving along a road at a speed higher than cycling speed.
-Even though most real-life applications are interested in tracking rather than one-shot positioning, a good one-shot algorithm is an essential basis for a tracking algorithm.
-
-There is some research exploring using Bluetooth classic (not Low Energy) for positioning(refs); as chapter \ref{blepositioning} explains, Bluetooth Low Energy is a different protocol, which differs in many ways from Bluetooth classic, also on radio properties.
-Even though the BLE PXP profile and iBeacons describe some sense of location awareness using BLE signals, they do not allow for absolute positioning.
-I am also not aware of any academic papers describing positioning using BLE.
-
-In this chapter I explore different strategies for positioning using BLE.
-In addition to using the same methods that are being used for \wifi positioning, I propose, on the basis of the BLE radio propagation properties described in \chapterref{rss}, an improved BLE positioning algorithm: \BRP.
-This improved algorithm performs 50\% better than the \wifi positioning algorithms.
-
 \section{RSS based positioning}
 \label{sec:architecture-rss-based-positioning}
 There are multiple techniques for positioning using radio signals, such as Time-Of-Arrival (TOA), Angle-Of-Arrival (AOA) as Received Signal Strength (RSS).
