@@ -294,17 +294,23 @@ Efficiently encoded this information is 12 bytes\footnote{
     The RSS value is only 1 byte, hence 12 byte is enough.
 }, so a beacon could include this information in its advertising packet, completely removing the need for a database.
 
-
-
 \section{Change parameters}
 During this section I look at the performance of the different methods when certain parameters in the system are changed.
 Throughout the section the median error is used for the performance; I have found this to be a good indicator for the performance of the whole system.
 
+In sections \ref{sec:architecture-number-beacons}, \ref{sec:architecture-dying-beacons} and \ref{sec:architecture-number-surveyed-points} I ``randomly'' remove beacons and surveying points.
+In these cases the results are gotten by doing 100 iterations, removing the beacons and points in a different order each time.
+The order in which the beacons and points are removed is determined by sorting md5-hashes of the \bid/point coordinates and the iteration number, resulting in a deterministic pseudo-random order.
+The median error plotted is the average of the median errors of the 100 iterations.
+
+
 \subsection{Number of beacons}
+\label{sec:architecture-number-beacons}
 \fig{\gnuplot{architecture}{beaconcount}{Effect of the number of beacons}}
 Every beacon added improves positioning, but results in diminishing return.
 The test bed contained 20 beacons, about 0.1 per $m^2$.
-\Figureref{architecture}{beaconcount} shows that fewer beacons indeed result in worse positioning performance.
+\Figureref{architecture}{beaconcount} shows all methods having gradually increasing errors when fewer beacons are used.
+This effect is slightly smaller in the \aBRP-based methods, and they outperform SSD-O for a small number of beacons.
 
 
 \subsection{Unobserved beacons}
@@ -315,36 +321,43 @@ In this section I explore what happens if the beacons were seen during surveying
 This may be because a beacon was switched off, the battery died or the beacon was purposefully removed in a denial-of-service attack.
 Since \wifi access points are plugged in to mains, and they are usually in locations not easily accessible to attackers, they are less likely to suffer from the latter two failures than BLE beacons.
 
-In addition, a beacon may be transmitting, but not be observed during the listening interval.
-\Sectionref{rss}{busyroom} suggests that (at least in some cases) at most 60\% of advertisements are received (and in many cases considerably fewer).
-If randomly 40\% of packets are not observed, there is a 2.5\% chance that four subsequent packets from one beacon are all missed.
-In the test set-up, beacons broadcast at 10Hz, however in many situations beacons may broadcast at lower rates to save energy.
-If 20 beacons broadcast at 4Hz, there is only a 60\% chance that all 20 are heard at least once in a 1 second period, assuming the same random 40\% drop rate.
+Another reason that a beacon may be unobserved is that all packets from the beacon during the listening interval were lost.
+\Sectionref{rss}{busyroom} shows that there is a lot of packet loss, and beacons may not be observed, even after several beaconing intervals.
+This specific situation is investigated more in \sectionref{architecture}{short-walk}, where the listening intervals are shortened.
 
 If no packets have been received from a beacon during either surveying or positioning, the algorithms used set its average and maximum RSS -105dB.
-This is just below the lowest RSS that has been successfully received on the \device.
 
 \Figureref{architecture}{livebeaconcount} shows that the both SSD based methods are very sensitive to unobserved beacons.
 A single unobserved beacon almost doubles the mean error for both methods.
-The \aBRP methods however only gradually show increased errors in a situation where beacons are not observed.
+The \aBRP methods however are designed to resist blacked-out beacons, and only show gradually increasing errors in a situation where beacons are not observed.
+Even with a single unobserved beacon, \aBRP outperforms SSD-O and SSD by having a 35\% and 42\% smaller median error.
 
 \subsection{Positioning listening length}
 \label{sec:architecture-short-walk}
-\fig{\gnuplot{architecture}{short-walk}{Effect of positioning listening length}}
+\fig{\gnuplot{architecture}{unobserved}{Percentage of positionings with unobserved beacons}}
+\fig{\gnuplot{architecture}{short-walk}{Effect of positioning listening interval on median error}}
 As described in \sectionref{architecture}{experiment}, positioning was done by listening at a single location for 2 seconds.
-Since the beacons transmit at 10Hz, 2 seconds equates to 20 transmit intervals.
-During this time 200 packets were received on average from all 20 beacons combined, meaning that only half of all packets were received, consistent with the numbers we found in \sectionref{rss}{packet-loss}.
+On average, 197 packets were received during one positioning, meaning a 48\% packet loss (based on the actual 9.5Hz advertising rate for the beacons).
+\Figureref{architecture}{unobserved} shows that only 1.5\% of positionings fail to observe all beacons with a 2 second listening interval, but at shorter intervals, more positionings do not observe all beacons.
+
+\Sectionref{architecture}{dying-beacons} shows the effect that unobserved beacons have on positioning.
+In addition to beacons being unobserved, a shorter listening interval also leads to fewer packets for those beacons that are observed, meaning that the calculated mean or maximum RSS is less accurate.
 
 \Figureref{architecture}{short-walk} shows the effects of a shorter listening period.
-Decreasing the listening period from 2 seconds, the error increases slightly, until it sharply increases for the SSD based methods, and less so for \aBRP based methods, from 0.7 seconds, or 7 transmission intervals onwards.
-\Sectionref{rss}{packet-loss} shows that at 7 transmission intervals there is an 3.2\% chance that from at least one beacon no packet was received, and this change increases quickly to 19\% for 5 intervals and 73\% for 3 intervals.
-\Sectionref{architecture}{dying-beacons} already showed that \aBRP based methods are more resistant to unobserved beacons.
+Decreasing the listening period from 2 seconds, the error increases slightly until about 0.7 seconds, when it sharply increases for the SSD based methods, and less, but still considerate, for \aBRP based methods.
+
+With 30\% of positionings having at least one beacon unobserved at 0.7 seconds (\figureref{architecture}{unobserved}), and the knowledge from \sectionref{architecture}{dying-beacons}, this result is not unexpected.
 
 \subsection{Number of surveyed points}
+\label{sec:architecture-number-surveyed-points}
 \fig{\gnuplot{architecture}{surveypointpart}{Effect of reducing the number of points surveyed}}
-In order to see the effect of the number of points in the fingerprint database, I randomly removed points from the database.
-As \figureref{architecture}{surveypointpart} shows, removing 75\% of survey points hardly reduces the accuracy.
-The \aBRP based methods seem to be more resilient against removal of even more surveying points than the SSD based methods.
+In order to see the effect of the number of points in the fingerprint database, I removed survey points from the fingerprint database, while still using the same data for positioning.
+The points were removed in the deterministically-random way described before.
+
+As \figureref{architecture}{surveypointpart} shows, removing fingerprints reduces accuracy, as one might expect.
+Reducing the database to 100 points, a 55\% decrease, only increases the median error with around 15\%, however removing more points results in a stronger increase in median error.
+
+The \aBRP based methods are shown to be more resilient against removal of even more surveying points than the SSD based methods, even though I do not have an explanation for this.
 The \aBRP-RPM does not use a fingerprint database, and therefore always performs equally good.
 
 \section{Discussion}
@@ -357,12 +370,14 @@ Depending on the algorithm these differences will have to be corrected for in so
 The test was done in a 2D environment; applying this to a 3D environment is not trivial.
 Indoor environments often span multiple floors and beacons can be received through floors and ceilings.
 A 2 meter error horizontally is probably acceptable in many positioning scenarios, while 2 meter vertically may position you on a different floor.
-In this experiment surveying and positioning were done on more or less the same height; even though determining a \device's height from the floor may not be needed in most scenarios, the horizontal position should stay accurate even if the \device is used on a different height.
+In this experiment surveying and positioning were done on more or less the same height; even though determining a \device's height from the floor may not be needed in most scenarios, the horizontal position should stay accurate even if the \device is used by a child, or a person holding the device on eye level.
 
 The fact that BLE uses 3 separate channels for advertising is recognised but not being taken advantage of in the methods discussed here.
-Using each channel separately in the SSD based methods may not be feasible; it would expand the dimensions in the signal space by a factor 3, and as a result the methods may actually perform less.
-Using each channel for \aBRP would an interesting idea to pursue.
-If a single channel is received stronger than surveyed at that location, that should give the same penalty as if the whole signal is stronger.
+Using each channel separately in the SSD based methods may not be feasible; it would expand the dimensions in the signal space by a factor 3, and as a result the methods may actually perform less, although it is interesting to try this out.
+Using each channel for \aBRP would be an interesting idea to pursue.
+The rationale used for \aBRP, that the RSS found during positioning is unlikely to be much higher than the one found during surveying, applies to single channels in the same way that it does to the combined signal from one beacon.
+It should be mentioned however that not all devices have access to the channel a packet was received on; most notably, on Android devices this information is not available.
+This may be overcome by having beacons transmit a different \bid on each channel, however this was not supported in the beacons we had to our disposal.
 
 Unfortunately the test bed environment was mostly deserted during both the surveying and the positioning.
 Indoor positioning may in many cases be used in busy environments; on conferences, in museums, train stations or airports.
@@ -371,8 +386,8 @@ It would have been interesting to see how the systems behave when many people mo
 Finally the test bed used in this report is a relatively open space.
 It is interesting to see how \aBRP performs in an environment with more walls in it.
 \aBRP is designed to pay less attention to signals that are lower than expected at a certain location.
-A lower than expected signal may however also be due to a wall.
-I do have good hopes that \aBRP will still give comparable results in that case to SSD; further research will have to show this.
+A lower than expected signal may however be due to a wall, in which case ignoring it may ignore a hint about on which side of a wall the positioning is being done.
+I do have good hopes that \aBRP will also give comparable results to SSD in a less open environment, however further research will have to show this.
 
 \section{Access to the fingerprint database}
 \label{architecture-database}
@@ -383,22 +398,26 @@ The database size depends on the area that is being mapped, around 20 bytes per 
     This results in 10,000 data points, for each I'll store the RSS of the 20 \begin{em}closest\end{em} beacons.
     Since the coordinates for all beacons are known, and the coordinates for each surveyed point are known, the \device can calculate the 20 closest points.
     The RSS was returned by all test devices as signed 8-bit value; some space could be saved by recognising that the interesting values for RSS all lie within a 6-bit range, but 8 bits will give us a good idea of size.
-    This means that per beacon 8 bytes (2 byte \bid and 2 bytes per coordinate) are needed, and per measurement point $20 \times 1 byte$.
-    Assuming a beacon every 5 meters, 400 in total, the map will be $some overhead + 400 \times 8 + 10,000 \times 20 \times 1 \approx 200 kilobyte$, which results in about 20 bytes per $m^2$.
-    It should be noted that the survey resolution of one measurement per $m^2$ may be too low or high (\citet{bahl2000radar} suggests that a lower resolution may perform only a bit worse), or that the 20 closest beacons are too many or too little, but this gives at the least an idea for the size of the map.
-}, resulting in about 50 kilobyte for the average Tesco Superstore\urlref{http://www.tescoplc.com/files/pdf/results/2014/prelim/prelim_2013-14_analyst_pack.pdf}, up to 1 megabyte for large museums such as the British Museum or le Louvre.
+
+    This means that for the beacon-list, we need 8 bytes per beacon (2 byte \bid and 2 bytes per $x$, $y$ and $z$ coordinate), and for the actual RSS $20 \times 1 byte$ per position.
+    Assuming a beacon every 5 meters, 400 in total, the map will be $some overhead + 400 \times 8 + 10,000 \times 20 \times 1 = 200.4 kilobyte$, which results in about 20 bytes per $m^2$.
+    It should be noted that the survey resolution of one measurement per $m^2$ may be too low or high (\figureref{architecture}{surveypointpart} suggests that a lower resolution may perform only a bit worse), or that the 20 closest beacons are too many or too little, but this gives at the least an idea for the size of the map.
+}, resulting in about 50 kilobyte for the average Tesco Superstore\urlref{http://www.tescoplc.com/files/pdf/results/2014/prelim/prelim_2013-14_analyst_pack.pdf}{10 June 2014}, up to 1 megabyte for large museums such as the British Museum or le Louvre.
+
+Below I suggest several strategies how to access a fingerprint database from a positioning device.
 
 \subsection{Global beacon database}
 \Wifi positioning is based on a global database (more precisely multiple competing global databases), maintained by commercial parties such as Skyhook and Google.
-The data from this database comes from surveying outside (for instance with Google Streetview cars), and is updated by manual submissions and by use \urlref{http://www.skyhookwireless.com/location-technology/coverage.php}.
-Building something similar for BLE encounters many problems: BLE peripherals (the ones that do the advertising) don't have a fixed address, and they may change their ID or advertisement message often.
-In addition many BLE peripherals are mobile, carried around by people.
-As a result such a database would need to only contain BLE beacons\footnote{There is no standard for a BLE beacon, but something very similar to an iBeacon would make sense: a fixed string identifying that it's a beacon, and then an ID.}. 
-BLE beacons typically have a limited range, and may not be noticed when driving around outside.
-Finally there may be a chicken-and-egg problem: unlike \wifi access points, BLE beacons have only one goal, which is positioning, and they will not be installed until the database to use them is there.
+The data from this database comes from surveying outside (for instance with Google Streetview cars), and is updated by manual submissions and by use \urlref{http://www.skyhookwireless.com/location-technology/coverage.php}{10 June 2014}.
+One may try to build something similar for BLE.
+Firstly it should be noted that one has to be able to distinguish BLE beacons (which are stationary and have a fixed ID) from other BLE peripherals that advertise, such as smart watches or heart rate meters, which are both mobile, and can change their advertising message.
+As of this moment there is no standard from the Bluetooth SIG which allows one to recognise an unknown device as a BLE beacon from its advertising message, or to govern the beacon IDs so that a single ID is not reused.
+There are however not-Bluetooth SIG standards out there, such as iBeacon, that could fill this role.
+Secondly BLE beacons typically have a limited range, and may not be noticed when driving around outside, so surveying inside may be needed.
+Finally there may be a chicken-and-egg problem: unlike \wifi access points, BLE beacons have only one goal, which is positioning, and they will not be installed until the database to use them is there\footnote{Even though beacons can also be used in a stand-alone way, such as iBeacons.}.
 The database however only makes sense with a critical mass of BLE beacons.
 
-If these problems were solved (either because companies would manually enter their beacon positions into the database, or through better scanning techniques), and everybody agreed on this standard, a BLE positioning system similar to the \wifi positioning system, could work.
+If these problems were solved (either because companies would manually enter their beacon positions into the database, or through better scanning techniques), and everybody agreed on a standard, a BLE positioning system similar to the \wifi positioning system, could work.
 Because of its size, downloading the full database would only be feasible in certain situations, and most of the time positioning would be done by sending the measured RSS to the cloud, and getting back a position.
 Ideally such a database would be open for anyone to use, so that BLE positioning would work in any application.
 
@@ -406,34 +425,44 @@ Ideally such a database would be open for anyone to use, so that BLE positioning
 Instead of having a global database with all BLE fingerprints, this information can be available on the phone itself.
 Typically the company using the building could provide an \app with navigation support for that building (e.g.\ Tesco releasing a Tesco \app, which allows navigation inside Tesco supermarkets).
 In this case there is no chicken-and-egg problem, the same organisation provides the beacons, the database and the navigation \app.
-Another advantage of this system is that no internet connection is needed to do the positioning: since the database and the maps are already on the phone, positioning and navigation is possible places without cellular coverage or for those who do not wish to use a cellular data connection.
-Navigation happens in a proprietary \app though,that needs to be installed before, and will not be available in general applications, such as Google maps.
+Another advantage of this system is that no internet connection is needed to do the positioning: since the database and the maps are already on the phone, positioning and navigation is possible in places without cellular coverage, or for those who do not wish to use a cellular data connection.
+Navigation happens in a proprietary \app though, which needs to be installed before, and will not be available in general applications, such as Google maps.
 This method also has increased privacy concerns, that I discuss in chapter \ref{chap:security}.
-Finally this method may result in an out-of-date database; \citet{moller2012update} showed that only 50\% of Android users install a new \app version within 7 days, and 25\% has not updated even after 3 months; another method for updating the database then updating the \app may be needed, but this may lead to its own problems.
+Finally this method may result in an out-of-date database; \citet{moller2012update} showed that only 50\% of Android users install a new \app version within 7 days, and 25\% has not updated even after 3 months; another method for updating the database from updating the \app may be needed; this may lead to its own problems.
 
 \subsection{On-beacon beacon database}
 A third option is to have the fingerprint database and the indoor map on the beacons themselves, preferably in an open format.
-Since advertising packets themselves can only contain 31 bytes of information (this includes the \bid), a phone would have to make a connection to a beacon to download the database and map.
-In some quick experiments, I found a sustained BLE data transfer rate of 8KByte/second, meaning that a small database and map can be downloaded in seconds\footnote{Larger maps could possibly be downloaded in parts, or by switching to a higher bandwidth system, such as Bluetooth ER, or \wifi. A switch to another connection may require user interaction on some systems though, notably in iOS.}
+Since advertising packets themselves can only contain 31 bytes of information (this includes some data describing the packet as to be from a beacon, and the \bid), a phone would have to make a connection to a beacon to download the database and map.
+In some quick experiments, I found a sustained BLE data transfer rate of 8KByte/second, meaning that a small database and map can be downloaded in seconds\footnote{Larger maps could possibly be downloaded in parts, or by switching to a higher bandwidth system, such as Bluetooth ER, or \wifi. A switch to another connection may require user interaction on some systems though, notably in iOS.}.
 The beacon database and indoor map can be picked up by any \app that understands the format, and no internet connection is required.
 Extra care does have to be taken that all beacons have the same up-to-date version of the database, and because beacons are connected to and send out more data, their battery life will decrease.
+Depending on how important it is that the database and map can not be spoofed, they may also need to be digitally signed.
 
-It should be noted that this technology can be extended beyond just mapping, such as giving up-to-date information in maps (which check out registers or theme park rides are not busy, where can I find the next bus to Cambridge, etc), or to replace signs (menu-of-the-day, wifi-password, opening hours or latest offers). 
+It should be noted that this technology can be extended beyond just mapping, such as giving up-to-date information in maps (which check out registers or theme park rides are not busy, at what time are the penguins being fed in this zoo, where can I find the next bus to Cambridge, etc), or to replace signs (menu-of-the-day, wifi-password, opening hours or latest offers). 
 
+\section{Alternative methods}
+This chapter focussed on building an opportunistic RSS based positioning system with BLE beacons.
+In this section I discuss two alternatives to this system, also based on BLE and standard smartphone hardware, that I think are worth some further research as well.
 
-\subsection{Alternative methods: Listening beacons}
-Instead of having the \device listen for packets from the beacons, the \device instead could send advertising packets to be picked up by the beacons.
-The beacons could then use all sorts of methods (for instance time-of-flight) to determine the sender's location, and send this back (either by BLE or over the internet) to the \device, or an interested third party.
-Using something else than RSS means that the beacons may need to be more complex, probably making them more expensive, but this may be acceptable in some deployments.
+\subsection{\BLE Bats and crickets}
+\label{sec:architecture-bats}
+
+Positioning systems \define{Active Bat} \citep{harter2002anatomy} and \define{Cricket} \citep{priyantha2000cricket} use a combination of radio waves and ultrasound to do positioning; using the difference in speed between radio and sound waves, the distance to multiple beacons can be determined, from which the position can be calculated.
+Active Bat and Cricket require the users to carry a specific device in order to use the system.
+
+With BLE, all the technology needed for such a system is available in a smartphone: a speaker/microphone, and a way for \apps to send and receive radio packets.
+
+Multiple combinations of what device sends what signal are possible, but a simple set-up, similar to the one tested above, could have beacons send both a BLE advertising packet and a near-ultrasound signal.
+The BLE packet is picked up by the \device, which then listens for the near-ultrasound signal.
+There is evidence that smartphone microphones can pick-up (near) ultrasound\citep{arentz2011near,bihler2011smartguide}, and in a short test the iPhone 5S picked up sounds to 20kHz without a problem, with higher frequencies not tested.
+Since the BLE packets are not sent on each of the three channels simultaneously, the \device would have to compensate for this.
+For this to work it is essential that the information an \app receives on when a BLE packet was received is accurate enough; this is something that has to be looked into in further research.
+A system like this requires limited alteration to the beacon hardware, although I expect beacons to use more energy since they have to send out near ultrasound pulses as well.
+
+\subsection{Listening beacons}
+Instead of having the \device listen for packets from the beacons, the \device instead could send advertising packets to be picked up by the beacons\footnote{Technically one could argue that this stops them from being ``beacons''.  I think it improves understanding to still call them beacons, even if they only listen, and the \device itself sends the beacon signals.}.
+The beacons could then use all sorts of methods (for instance Time-Difference-Of-Arrival) to determine the sender's location, and send this back (either by BLE or over the internet) to the \device, or an interested third party.
+Using something else than RSS for positioning, means that the beacons may need to be more complex, probably making them more expensive, but this may be acceptable in some deployments.
 The beacons will need to collaborate to determine the \device's position, so they need to be networked (either using BLE or something else), and since they need to listen all the time, they will use more energy than the simple beacons we used above, resulting in either regular battery replacements or connection to a mains power supply.
 
-\subsection{Alternative methods: BLE Bats and crickets}
-\label{sec:architecture-bats}
-Positioning systems \define{Active Bat}\citep{harter2002anatomy} and \define{Cricket}\citep{priyantha2000cricket} use a combination of radio waves and ultrasound to do positioning.
-With BLE, \device have the ability to do the same: a speaker and microphone for sound, and BLE allows \apps an easy way to send simple radio packets.
-Within this architecture, many strategies are possible.
-One could equip each BLE beacon with a speaker.
-The \device sees the beacon, connects to it and asks it to send an ultrasound pulse.
-There is evidence that smartphone microphones can pick-up (near) ultrasound\citep{arentz2011near,bihler2011smartguide}.
-For positioning however it is important the precise timings can be obtained on when the BLE packet and the sound were received, and it remains to be seen if these precise timings are delivered by the OS.
-A system like this requires limited alteration to the beacon hardware, although there will be a large increase in power usage for beacons that are used a lot.
+Having the \device send signals instead of just listening for them, has privacy implications, which I discuss in the next chapter.

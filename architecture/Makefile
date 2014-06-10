@@ -85,6 +85,10 @@ short-walk-gnuplot.tex: short-walk.gnuplot ${SHORTWALKDEPS}
 	gnuplot -e  "set terminal epslatex size 13.75cm,11cm color; set output '$@'; shortwalkdeps='$(SHORTWALKDEPS)';" $<
 	sed -i '' 's/includegraphics{/includegraphics{$(CURRENT_DIR)\//' $@
 
+short-walk-unobserved-beacons.data: ${SHORTWALKDEPS}
+	for i in $$(ls short-walk-1-???s.data | sed 's/short-walk-1-\(.*\)s.data/\1/' | sort -n); do echo -n $$i; awk '{if ($$6 == -105) {print FILENAME, $$1, $$2}}'  short-walk-?-$${i}s.data | uniq | wc -l; done > $@
+
+
 positioning-type-%.data: position.py ${FPD} walk-1.data walk-2.data walk-3.data
 	python $< $* ${FPD} walk-1.data walk-2.data walk-3.data > $@ 2> /dev/null
 
