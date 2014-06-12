@@ -13,15 +13,15 @@ The signals from GNSS satellites are weak, and usually unable to penetrate struc
 This means that the system's use degrades considerably between high-rise buildings, and cannot be used indoors.
 In addition, indoor positioning is harder, because there are more variables; while outdoors one can usually assume that the positioning device is on ground level, indoors positioning needs to be done in all 3 dimensions.
 Finally, indoor positioning for consumer use has stricter requirements than outdoors: while outdoors an error of 10 meters can easily be spotted and corrected for by a user, indoors 10 meters can mean a different floor, or even building. 
-Where GPS is not available, or in addition to GNSS positioning, current smartphones use a combination of mobile signals from cell towers, and \wifi signals, use of which was pioneered by \citet{bahl2000radar}.
-The choice for these technologies is at least partly because both the beacon infrastructure and the smartphone hardware to receive the signals, was already in place.
+Where GPS is not available, current smartphones use a combination of mobile signals from cell towers, and \wifi signals, use of which was pioneered by \citet{bahl2000radar}.
+The choice for these technologies is at least partly because both the beacon infrastructure and the smartphone hardware to receive the signals was already in place.
 Positioning through \wifi is accurate to tens of meters in a typical urban environment \citep{zandbergen2009accuracy}, and the precision increases with the number of access points in close vicinity.
 Using mobile signals for positioning gets an accuracy in hundreds of meters.
 
 \section{\BLE}
-\BLE (BLE), also known as Bluetooth Smart, or sometimes incorrectly referred to as Bluetooth 4.0\footnote{Bluetooth 4.0 is the fourth incarnation of the Bluetooth standard, which contains, among other things, \BLE. The latest Bluetooth standard is 4.1, from 21 December 2013, which includes some big changes for \BLE as well; these changes however have no effect on packet advertising, and I do not believe that any of the changes is of influence on the technology described in this report.}, is a new wireless connection technology that is quickly gaining in popularity.
+\BLE (BLE), also known as Bluetooth Smart, or sometimes incorrectly referred to as Bluetooth 4.0\footnote{Bluetooth 4.0 is the fourth incarnation of the Bluetooth standard, which contains, among other things, \BLE. The latest Bluetooth standard is 4.1; all claims in this report are valid for both versions.}, is a new wireless connection technology that is quickly gaining in popularity.
 It was introduced in 2010 as part of the Bluetooth 4.0 standard.
-BLE is not compatible with previous versions of Bluetooth (now often referred to as Bluetooth Classic), and is not meant to replace traditional Bluetooth; another part of the Bluetooth 4.0 standard does that.
+BLE is not compatible with previous versions of Bluetooth (now often referred to as Bluetooth Classic), and is not meant to replace traditional Bluetooth.
 
 \fig{\gnuplot{introduction}{ble-wifi}{\BLE advertising (blue) and data (red) channels, and \wifi channels, with the much-used 1/6/11 channel combination in bold.}}
 
@@ -43,12 +43,11 @@ This makes BLE a plausible candidate to provide indoor positioning.
 \section{Positioning}
 \define{Radiolocation} is the technique of determining a device's location by use of radio waves.
 This technique can be used to either determine location on the basis of a single measurement, or to track a device's movement over time.
-The former is called \define{\ptfp} or \define{one-shot positioning} (and in this report I will usually just call it \define{positioning}), while the latter is known as \define{tracking}.
-In tracking both information from the measurement itself and the history, possibly combined with information from other sensors, can be used, while \ptfp only has the one measurement to determine a location.
+The former is called \define{\ptfp} or \define{one-shot positioning} (in this report I will usually just call it \define{positioning}), while the latter is known as \define{tracking}.
 In this report I exclusively focus on \ptfp, however I believe that an improvement in \ptfp can also be used to improve tracking performance.
 
 Radio-positioning can broadly be done in two ways.
-Either the device to be located can send a signal, which is received by stations in the environment, which determine the device's location (and then either send it back to the device or do something else with that information).
+Either the device to be located can send a signal, which is received by stations in the environment, which determine the device's location.
 Alternatively, stations in the environment can send out signals, which are received by the device.
 Using these signals the device can determine its location.
 This latter form is known as \define{opportunistic positioning}.

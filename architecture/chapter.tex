@@ -12,8 +12,8 @@ To do positioning, a measurement of the RSS of each access point at an unknown l
 The method mostly used to find a match is (a variant of) k-nearest-neighbour.
 The method works in three steps.
 
-Firstly the set of measured RSSs, both those collected during the surveying and the positioning phase, are transformed into values needed for step two.
-\citet{bahl2000radar} describes that the mean, standard deviation and median of multiple measurements at a single location was calculated, but only use the mean in the rest of the paper.
+Firstly the set of measured RSS are transformed into values needed for step two.
+\citet{bahl2000radar} described that the mean, standard deviation and median of multiple measurements at a single location were calculated, but only used the mean in the rest of the paper.
 
 Secondly the values from the fingerprints are compared to the values found while positioning, and a distance between the two sets is determined, by a distance-function $L$.
 The usual choice for the distance-function (and hence the name) is to calculate the distance in signal-space, where each signal-source is a dimension.
@@ -28,11 +28,11 @@ Most methods use the $L_q$ function with the $s_i$/$p_i$ in dB, \citet{li2005met
 Another interesting candidate is the Mahalanobis distance, use of which is explored and found to be superior by \citep{kaemarungsi2005efficient}.
 
 Finally the calculated distances are being used to map to a position.
-\citet{bahl2000radar} uses both a 1-nearest-neighbour and a k-nearest-neighbour approach, showing that the second works better (although only slightly due to some choices they made in the rest of the algorithm).
+\citet{bahl2000radar} uses both a 1-nearest-neighbour and a k-nearest-neighbour approach, showing that the second works better.
 \citet{li2005method} uses a weighted-k-nearest-neighbour approach, where the nearest neighbours are being weighted by the result of the distance-calculation, and \citet{shin2012enhanced} introduced using a dynamic value for the number of neighbours $k$ to further improve the result.
 
 \citet{pandya2003indoor} compares nearest-neighbour to other positioning methods based on RSS, and finds nearest-neighbour to work well in most cases (among which Bluetooth Classic).
-Unsurprisingly, other methods from the domain of machine learning have been examined as well to do positioning, such as Gaussian Process Latent Variable Models \citep[ferris2007wifi] or Neural Networks \citep[battiti2002location].
+Unsurprisingly, methods from the domain of machine learning have been examined as well to do positioning, such as Gaussian Process Latent Variable Models \citep[ferris2007wifi] or Neural Networks \citep[battiti2002location].
 
 Of these methods, the one used by \citet{bahl2000radar} is used in this report to compare against; both because the method is simple to understand and implement while giving good results, and because many other authors used this method as a base to compare against.
 
@@ -44,7 +44,7 @@ The room consists of a square 12 by 12 meter main area, with several coves.
 The room contains four decagonal-shaped tables with computers on them and chairs around them, as well as some other furniture.
 Twenty BLE beacons were used, ten on the walls of the room, eight on the tables, one in the middle and one placed a couple of meters outside the room (\figureref{architecture}{room}).
 The beacon positions were chosen such that all areas would receive BLE signals, but no specific action was taken to find optimal positions.
-Each beacon broadcasts a single advertising packet, a unique \bid, on all three channels, with a rate of 10Hz; the transmitting power of all beacons is the same, and stays the same over the experiment's lifetime.
+Each beacon broadcasts a single advertising packet, a unique \bid, on all three channels, with a rate of 10Hz.
 All measurements were done on a 60 by 60 cm grid, since this is the size of the floor tiles and this allowed for easy reference.
 
 \fig{
@@ -59,13 +59,11 @@ For each advertisement packet received, the \bid, advertising channel, RSS and t
 Complete 360\tdegree survey took between 3.5 and 15 seconds for each of the 226 accessible points, with a mean of 9 seconds per point.
 On average 903 advertising packets were captured per point, meaning there was around 45\% packet loss.
 
-During the positioning phase, I went to each grid point, standing naturally while holding the \device still over the grid point for two seconds, again logging the \bid, advertising channel, RSS and current heading for each received packet.
-In total 670 positionings measurements were taken this way for the 226 locations, visiting each location at least twice\footnote{The intention was to visit every location three times; due to an oversight some locations were visited only twice.}.
+During the positioning phase, I went to each grid point, standing naturally while holding the \device still over the grid point for two seconds.
+In total 670 positionings measurements were taken at 226 locations.
 
 During surveying each beacon was observed at least once at each location.
 During positioning, this was not the case; this may have been because the \device was not moving, not rotating, and the listening interval was shorter.
-
-It should be noted that both in the surveying and the positioning phase, for about 2\% of all packets no RSS information was reported by the OS; these packets were discarded.
 
 In addition the $x$, $y$ and $z$ coordinates for each beacon were determined, and the maximum RSS on 1 meter distance.
 
@@ -76,11 +74,10 @@ The data gathered from this experiment allows me to compare six different positi
 All positioning in this report is being done through the weighted k-nearest-neighbour algorithm.
 Provided a set of distances for a single measurement to each surveyed point, ordered by distance, the average of the points belonging to the first $k$ distances is calculated, weighted by $\frac{1}{distance+\epsilon}$, to avoid division by 0; an $\epsilon$ of 0.01 was empirically found to work well.
 The difference between the compared algorithms, is in how the distances are calculated, the first two steps of the nearest-neighbour algorithm as described in \sectionref{architecture}{rss-based-positioning}.
-All experiments are run with $k = 5$; I found that value to be optimal in many cases, and near to optimal (within the noise range) in the other cases.
+All experiments are run with $k = 5$; this value was empirically found to work well.
 
 In the positioning algorithms below, the first step is always (except for ``random'') taking either the mean or the maximum RSS measured at a location.
 To deal with cases when a particular beacon was not observed, that beacon is treated as having been received with an RSS of -105dB; this is 2dB lower than the lowest RSS reported for an actual packet during the experiment, and seems reasonable, since if there had been a packet with signal strength -105dB, the \device would not have noticed it.
-It is possible however that another choice on how to deal with unobserved beacons gives better results; I leave this for future research.
 
 \subsection{Random}
 As a reference, the random method returns random distances for each fingerprint, after which the k-nearest-neighbours method is used to calculate a position.
@@ -108,7 +105,6 @@ For example, if the average heading during positioning is 34.6\tdegree, the pre-
 
 It should be noted that this method is dependent on the accuracy of the built-in compass.
 During surveying and positioning I kept an eye on the compass reading, and noticed nothing absurd, however no further effort was made to check how accurate the compass is.
-During a similar experiment in another part of the building, I did notice huge compass fluctuations.
 In \sectionref{architecture}{measurements-ssd-o}, I explore the influence that a potential compass-error has on this method.
 
 \subsection{\BRP (\aBRP)}
@@ -137,7 +133,7 @@ Most notably, the method recognises that some beacons may be temporarily blacked
 The function gives penalty points for each way in which a fingerprint does not agree with a positioning measurement.
 This syntactic difference does not change its semantics however: penalties are calculated for each fingerprint in the database, and the ones with the lowest penalties are selected to be averaged.
 
-\BRP recognises that, once during surveying the maximum RSS $s_i$ in an area has been determined for a certain beacon, it is unlikely that during positioning a much higher RSS $p_i$ will be measured at that point\footnote{I experimented whether taking the 95th or 99th percentile would give me better results than the maximum, however there was no obvious advantage.}.
+\BRP recognises that, once during surveying the maximum RSS $s_i$ in an area has been determined for a certain beacon, it is unlikely that during positioning a much higher RSS $p_i$ will be measured at that point.
 This means that $p_i \gg s_i$ should result in a large penalty.
 On the other hand, having measured a much lower RSS may be the result of \mpi, antenna orientation, body shadowing, or packet loss, and is not a strong indicator that a particular position should be discarded; hence $p_i \ll s_i$ should not carry a large penalty.
 Obviously the lowest penalty is given if $p_i \approx s_i$.
@@ -169,15 +165,12 @@ For $d_i < -10$dB, penalties start with a large offset, but increase only slowly
 The part in between has very low penalties with a minimum of 0 at $d_i = -4.2$.
 This is the average $d_i$ for the 2 second listening interval.
 
-Many of the penalty offsets, factors and cut-offs in the \aBRP penalty function have been discovered by manual tweaking.
 The function has been optimised for performance on the 2 second listening interval, however while keeping performance in other situations in mind as well.
 Considering the changes in $d_i$ distribution for different listening intervals, as shown in \figureref{architecture}{rss-cloud}, optimising for other listening intervals will probably lead to other parameters.
-Further research will have to show whether a version that dynamically adapts to the listening interval, or explicitly takes unobserved beacons into account, is feasible.
 
 \subsection{\BRP with Orientation (\aBRP-O)}
 Taking orientation into account in \aBRP, in the same way that SSD-O does for SSD, is an obvious extension.
 It should be noted however that \aBRP is specifically designed to have a certain resistance to signal drops, including those from orientation.
-The expectation therefore is that \aBRP-O will bring less benefit to \aBRP than SSD-O brings to SSD.
 
 In SSD-O, $\alpha$ = 60\tdegree was found to work best; in \aBRP-O $\alpha$ = 90\tdegree works best.
 
@@ -187,14 +180,11 @@ Whereas \aBRP uses a surveyed database of fingerprints, \aBRP-RPM estimates the 
 Such a model does not work well for \aBRP however, since \aBRP expects the fingerprints to be the maximum receivable RSS in that area, and the model in \citet{bahl2000radar} tries to have a low average error.
 Instead I use a simplified model for maximum expected RSS at a position.
 
-Knowing that RSS is in decibel of the power, and the power decreases quadratically with distance, one can calculate the RSS $R(x)$ for a radio signal in empty space at distance x from the transmitter, if the RSS at 1 meter distance $R_0$ is known.
 \begin{equation}
     R(x) = R_0 - 10 \times \, ^{10}\log(x^2) = R_0 - 20 \times \, ^{10}\log(x)
 \end{equation}
 
 By measuring the RSS at one meter for each beacon (if all beacons are similar, this only has to be measured for one beacon), this formula can be used to estimate the maximum RSS at any location.
-Using this formula, the $R_0$ and the $x$, $y$ and $z$ coordinates of all beacons, an estimated RSS can be calculated at each location.
-It should be noted that \mpp and other radio propagation properties can result in the actual RSS in a spot being higher than the one estimated this way, however it is hoped that this is seldom more than 3 dB, and \equationref{architecture}{BRP-punishment} already allows for this, only adding severe penalties for more than 3 dB difference.
 
 \section{Measurements}
 \label{sec:architecture-measurements}
@@ -211,12 +201,6 @@ It should be noted that \mpp and other radio propagation properties can result i
     \begin{subfigure}[b]{0.5\textwidth}
         \gnuplotscale{architecture}{heatmap-f-brp-o-0}{maximum, direction north (\aBRP-O)}{0.55}
     \end{subfigure}
-    \begin{subfigure}[b]{0.5\textwidth}
-        \gnuplotscale{architecture}{heatmap-f-rpm}{estimated (\aBRP-RPM)}{0.55}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.5\textwidth}
-        \gnuplotscale{architecture}{heatmap-13-max}{maximum (\aBRP), other beacon}{0.55}
-    \end{subfigure}
     \caption{Each method uses its own fingerprint database; shown the RSS of the central beacon in each database}
     \label{fig:architecture-heatmaps}
 \end{figure}
@@ -224,20 +208,21 @@ It should be noted that \mpp and other radio propagation properties can result i
 \Figureref{architecture}{heatmaps} shows the RSS for a single beacon in the different fingerprint databases.
 The RSS looks as expected; RSS generally decreases with distance to the beacon.
 The SSD-O fingerprint has slightly higher averages than the SSD south of the beacon, and slightly lower north of the beacon, because of body shadowing.
-The maximum RSS (as shown in (c)) is about 10dB higher than the mean (this is generally consistent with the results from \figureref{rss}{mpi-combine-channels}).
+The maximum RSS (as shown in (c)) is about 10dB higher than the mean, with \aBRP-O showing the same slight directional properties.
 
 \fig{\gnuplot{architecture}{results}{Errors for the six positioning methods and two combined methods}}
 
 \subsection{Random}
 Using a (deterministic) random distance function gives a mean error of around 6 meters, something that was expected considering that the k-nearest-neighbour algorithm will have a tendency to choose positions in the middle of the room as it averages $k$ positions.
 Obviously this would grow with the size of the test bed; it does give a lower bound for positioning.
+
 \subsection{Signal Space Distance}
 \fig{\gnuplot{architecture}{positioning-errors-SSD}{Positioning errors using SSD, colour indicates average error, arrows indicate the direction where the algorithm calculated the \device to be.}}
 SSD gives a median error of 1.08 meter, and counts as the positioning function the other ones are evaluated against.
 \Figureref{architecture}{positioning-errors-SSD} shows that some areas in the room have a larger mean error than other areas, while the arrows show no obvious direction in which the errors lie.
 
 In general positioning seems to be more accurate close to the walls; one explanation may be that orientation and \mpi influence the reception less close to the wall than in the middle of the room, because reflection off the wall compensates for that.
-I have been unable to find clear evidence for this however.
+I have been unable to find evidence for this however.
 
 \subsection{Signal Space Distance with Orientation}
 \label{sec:architecture-measurements-ssd-o}
@@ -348,9 +333,6 @@ Decreasing the listening period from 2 seconds, the error increases slightly unt
 
 With 30\% of positionings having at least one beacon unobserved at 0.7 seconds (\figureref{architecture}{unobserved}), and the knowledge from \sectionref{architecture}{dying-beacons}, this result is not unexpected.
 
-The beacons used for this experiment broadcast at 9.5Hz, meaning that 0.7 seconds is a 6.3 beacon intervals.
-I believe that good positioning is a lot harder at listening intervals of less than 6 beacon intervals; this is especially a problem if beacons are set to lower beaconing rates in order to save energy.
-
 \subsection{Number of surveyed points}
 \label{sec:architecture-number-surveyed-points}
 \fig{\gnuplot{architecture}{surveypointpart}{Effect of reducing the number of points surveyed}}
@@ -394,11 +376,10 @@ The database size depends on the area that is being mapped, around 20 bytes per 
     I assume a compact data format, which starts with a list of beacons, and then surveyed information, one survey point per meter, 10,000 survey points in total.
     This results in 10,000 data points, for each I'll store the RSS of the 20 \begin{em}closest\end{em} beacons.
     Since the coordinates for all beacons are known, and the coordinates for each surveyed point are known, the \device can calculate the 20 closest points.
-    The RSS was returned by all test devices as signed 8-bit value; some space could be saved by recognising that the interesting values for RSS all lie within a 6-bit range, but 8 bits will give us a good idea of size.
+    The RSS was returned by all test devices as signed 8-bit value.
 
     This means that for the beacon-list, we need 8 bytes per beacon (2 byte \bid and 2 bytes per $x$, $y$ and $z$ coordinate), and for the actual RSS $20 \times 1 byte$ per position.
     Assuming a beacon every 5 meters, 400 in total, the map will be $some overhead + 400 \times 8 + 10,000 \times 20 \times 1 = 200.4 kilobyte$, which results in about 20 bytes per $m^2$.
-    It should be noted that the survey resolution of one measurement per $m^2$ may be too low or high (\figureref{architecture}{surveypointpart} suggests that a lower resolution may perform only a bit worse), or that the 20 closest beacons are too many or too little, but this gives at the least an idea for the size of the map.
 }, resulting in about 50 kilobyte for the average Tesco Superstore\urlref{http://www.tescoplc.com/files/pdf/results/2014/prelim/prelim_2013-14_analyst_pack.pdf}{10 June 2014}, up to 1 megabyte for large museums such as the British Museum or le Louvre.
 
 Below I suggest several strategies how to access a fingerprint database from a positioning device.
@@ -422,16 +403,15 @@ Ideally such a database would be open for anyone to use, so that BLE positioning
 \label{sec:architecture-in-app-database}
 Instead of having a global database with all BLE fingerprints, this information can be available on the phone itself.
 Typically the company using the building could provide an \app with navigation support for that building (e.g.\ Tesco releasing a Tesco \app, which allows navigation inside Tesco supermarkets).
-In this case there is no chicken-and-egg problem, the same organisation provides the beacons, the database and the navigation \app.
-Another advantage of this system is that no internet connection is needed to do the positioning: since the database and the maps are already on the phone, positioning and navigation is possible in places without cellular coverage, or for those who do not wish to use a cellular data connection.
-Navigation happens in a proprietary \app though, which needs to be installed before, and will not be available in general applications, such as Google maps.
+An advantage of this system is that no internet connection is needed to do the positioning.
+Navigation happens in a proprietary \app though, which needs to be installed before.
 This method also has increased privacy concerns, that I discuss in chapter \ref{chap:security}.
-Finally this method may result in an out-of-date database; \citet{moller2012update} showed that only 50\% of Android users install a new \app version within 7 days, and 25\% has not updated even after 3 months; another method for updating the database from updating the \app may be needed; this may lead to its own problems.
+Finally this method may result in an out-of-date database; \citet{moller2012update} showed that only 50\% of Android users install a new \app version within 7 days, and 25\% has not updated even after 3 months.
 
 \subsection{On-beacon beacon database}
 A third option is to have the fingerprint database and the indoor map on the beacons themselves, preferably in an open format.
 Since advertising packets themselves can only contain 31 bytes of information (this includes some data describing the packet as to be from a beacon, and the \bid), a phone would have to make a connection to a beacon to download the database and map.
-In some quick experiments, I found a sustained BLE data transfer rate of 8KByte/second, meaning that a small database and map can be downloaded in seconds\footnote{Larger maps could possibly be downloaded in parts, or by switching to a higher bandwidth system, such as Bluetooth ER, or \wifi. A switch to another connection may require user interaction on some systems though, notably in iOS.}.
+In some quick experiments, I found a sustained BLE data transfer rate of 8KByte/second, meaning that a small database and map can be downloaded in seconds\footnote{Larger maps could possibly be downloaded in parts, or by switching to a higher bandwidth system.}.
 The beacon database and indoor map can be picked up by any \app that understands the format, and no internet connection is required.
 Extra care does have to be taken that all beacons have the same up-to-date version of the database, and because beacons are connected to and send out more data, their battery life will decrease.
 Depending on how important it is that the database and map can not be spoofed, they may also need to be digitally signed.
@@ -454,17 +434,14 @@ With BLE, all the technology needed for such a system is available in a smartpho
 Multiple combinations of what device sends what signal are possible, but a simple set-up, similar to the one tested above, could have beacons send both a BLE advertising packet and a near-ultrasound signal.
 The BLE packet is picked up by the \device, which then listens for the near-ultrasound signal.
 There is evidence that smartphone microphones can pick-up (near) ultrasound\citep{arentz2011near,bihler2011smartguide}, and in a short test the iPhone 5S picked up sounds to 20kHz without a problem, with higher frequencies not tested.
-Since the BLE packets are not sent on each of the three channels simultaneously, the \device would have to compensate for this.
-For this to work it is essential that the information an \app receives on when a BLE packet was received is accurate enough; this is something that has to be looked into in further research.
-A system like this requires limited alteration to the beacon hardware, although I expect beacons to use more energy since they have to send out near ultrasound pulses as well.
+For this to work it is essential that the information an \app receives on when a BLE packet was received is accurate enough.
 
 \subsection{Listening beacons}
-Instead of having the \device listen for packets from the beacons, the \device instead could send advertising packets to be picked up by the beacons\footnote{Technically one could argue that this stops them from being ``beacons''.  I think it improves understanding to still call them beacons, even if they only listen, and the \device itself sends the beacon signals.}.
-The beacons could then use all sorts of methods (for instance Time-Difference-Of-Arrival) to determine the sender's location, and send this back (either by BLE or over the internet) to the \device, or an interested third party.
+Instead of having the \device listen for packets from the beacons, the \device instead could send advertising packets to be picked up by the beacons.
+The beacons could then use all sorts of methods (for instance Time-Difference-Of-Arrival) to determine the sender's location, and send this back.
 Using something else than RSS for positioning, means that the beacons may need to be more complex, probably making them more expensive, but this may be acceptable in some deployments.
-The beacons will need to collaborate to determine the \device's position, so they need to be networked (either using BLE or something else), and since they need to listen all the time, they will use more energy than the simple beacons we used above, resulting in either regular battery replacements or connection to a mains power supply.
+The beacons will need to collaborate to determine the \device's position, so they need to be networked, and since they need to listen all the time, they will use more energy than the simple beacons we used above.
 
-Having the \device send signals instead of just listening for them, has privacy implications, which I discuss in the next chapter.
-
-
+Having the \device send signals instead of just listening for them, has privacy implications.
+The next chapter discusses the privacy and security side of positioning methods.
 
