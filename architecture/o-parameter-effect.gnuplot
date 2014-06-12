@@ -46,12 +46,12 @@ set object 2 polygon from startx,starty-.01 \
     front noclip
 
 
-plot target u (8-$0):1 w lp title "15\\textdegree", \
-     ""     u (8-$0):2 w lp title "22.5\\textdegree", \
-     ""     u (8-$0):3 w lp title "30\\textdegree", \
-     ""     u (8-$0):4 w lp title "37.5\\textdegree", \
-     ""     u (8-$0):5 w lp title "45\\textdegree", \
-     ""     u (8-$0):6 w lp title "60\\textdegree" lt 9, \
-     ""     u (8-$0):7 w lp title "90\\textdegree", \
-     ""     u (8-$0):8 w lp title "180\\textdegree", \
+plot target u (8-$0):1 w lp lw 2 title "15\\textdegree", \
+     ""     u (8-$0):2 w lp lw 2 title "22.5\\textdegree", \
+     ""     u (8-$0):3 w lp lw 2 title "30\\textdegree", \
+     ""     u (8-$0):4 w lp lw 2 title "37.5\\textdegree", \
+     ""     u (8-$0):5 w lp lw 2 title "45\\textdegree", \
+     ""     u (8-$0):6 w lp lw 2 lt 9 title "60\\textdegree", \
+     ""     u (8-$0):7 w lp lw 2 title "90\\textdegree", \
+     ""     u (8-$0):8 w lp lw 2 title "180\\textdegree", \
 

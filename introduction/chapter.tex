@@ -1,31 +1,25 @@
 \chapter{Introduction}
-\wordcount{introduction}
+\pagenumbering{arabic} 
+\setcounter{page}{1} 
 
 Using digital devices to find one's position has been one of the great advancements in technology in the last couple of decades, and has more recently entered the domain of personal electronics.
 At the end of 2013, it was reported that more than one in five persons owns a smartphone\urlref{http://www.businessinsider.com/smartphone-and-tablet-penetration-2013-10}{8 June 2014}, and many of these smartphones include GPS (General Positioning System) receivers.
 In addition, many GPS receivers have been sold outside of smartphones, in stand-alone navigation devices, or built in to larger products, such as cars.
 Since in 2000 the Selective Availability of GPS ended, the accuracy has improved to within a couple of meters\urlref{http://www.gps.gov/systems/gps/modernization/sa/}{8 June 2014}.
 More technological enhancements are possible to reduce the error into the centimeter range\urlref{http://en.wikipedia.org/wiki/GPS_enhancement}{8 June 2014}.
-The GPS system (and similar systems such as the EU's Galileo, Russia's GLONASS, India's IRNSS and China's Beidou-2 system), collectively known as \emph{Global Navigation Satellite Systems} (GNSS), have become the standard for outdoor positioning, even though mobile and \wifi signals are also being used to enhance positioning performance by many devices.
-
-In addition to being available globally for free, and providing accurate positioning, GNSS have some further advantages that resulted in their wide-spread adoption.
-GNSS can be used without any additional information, meaning that devices without an internet connection (either because they don't support an internet connection, or they currently are not connected), can position using GNSS.
-The communication from satellite to positioning device is completely one way, meaning on the one hand that the system scales perfectly with additional positioning devices, on the other hand does it guarantee perfect privacy: using a positioning device can be done without anyone finding out that a device is even being used.
-Finally, GNSS have some unique security properties: even though the civilian GPS system is vulnerable to jamming and spoofing\citep{volpe2001vulnerability,grant2009gps}, countermeasures are available\citep{warner2003gps,lo2009signal}.
-In addition, the physical security to the senders is large, as disabling, stealing, or tampering with a satellite is a complex and expensive operation.
+The GPS system (and similar systems such as the EU's Galileo, Russia's GLONASS, India's IRNSS and China's Beidou-2 system, collectively known as \emph{Global Navigation Satellite Systems} or GNSS), have become the standard for outdoor positioning.
 
 The signals from GNSS satellites are weak, and usually unable to penetrate structures.
 This means that the system's use degrades considerably between high-rise buildings, and cannot be used indoors.
 In addition, indoor positioning is harder, because there are more variables; while outdoors one can usually assume that the positioning device is on ground level, indoors positioning needs to be done in all 3 dimensions.
 Finally, indoor positioning for consumer use has stricter requirements than outdoors: while outdoors an error of 10 meters can easily be spotted and corrected for by a user, indoors 10 meters can mean a different floor, or even building. 
-There has been much research into indoor positioning, e.g.\ using infra-red\citep{want1992active}, a combination of ultrasound and radio-waves\citep{harter2002anatomy,priyantha2000cricket} or radio-waves by themselves\citep{lorincz2005motetrack}.
 Where GPS is not available, or in addition to GNSS positioning, current smartphones use a combination of mobile signals from cell towers, and \wifi signals, use of which was pioneered by \citet{bahl2000radar}.
 The choice for these technologies is at least partly because both the beacon infrastructure and the smartphone hardware to receive the signals, was already in place.
-Positioning through \wifi is accurate to tens of meters in a typical urban environment\citep{zandbergen2009accuracy}, and the precision increases with the number of access points in close vicinity.
+Positioning through \wifi is accurate to tens of meters in a typical urban environment \citep{zandbergen2009accuracy}, and the precision increases with the number of access points in close vicinity.
 Using mobile signals for positioning gets an accuracy in hundreds of meters.
 
 \section{\BLE}
-\BLE (BLE), also known as Bluetooth Smart, or sometimes incorrectly referred to as Bluetooth 4.0\footnote{Bluetooth 4.0 is the fourth incarnation of the Bluetooth standard, which contains, among other things, \BLE. The latest Bluetooth standard is 4.1, from 21 December 2013, which includes some big changes for \BLE as well; there changes however have no effect on packet advertising, and I do not believe that any of the changes is of influence on the technology described in this report.}, is a new wireless connection technology that is quickly gaining in popularity.
+\BLE (BLE), also known as Bluetooth Smart, or sometimes incorrectly referred to as Bluetooth 4.0\footnote{Bluetooth 4.0 is the fourth incarnation of the Bluetooth standard, which contains, among other things, \BLE. The latest Bluetooth standard is 4.1, from 21 December 2013, which includes some big changes for \BLE as well; these changes however have no effect on packet advertising, and I do not believe that any of the changes is of influence on the technology described in this report.}, is a new wireless connection technology that is quickly gaining in popularity.
 It was introduced in 2010 as part of the Bluetooth 4.0 standard.
 BLE is not compatible with previous versions of Bluetooth (now often referred to as Bluetooth Classic), and is not meant to replace traditional Bluetooth; another part of the Bluetooth 4.0 standard does that.
 
@@ -34,14 +28,14 @@ BLE is not compatible with previous versions of Bluetooth (now often referred to
 BLE uses the same 2.4GHz frequency band as \wifi, Bluetooth Classic and many other radio devices.
 In order to be able to operate in this busy band, BLE uses 40 channels, and during a connection an effort is made to only use channels with little interference.
 Out of the 40 channels, channel 0 to channel 36 are used after a connection is made, and three channels (channel 37, 38 and 39) are advertising channels.
-These advertising channels are used for discovery and connectionless information broadcast.
-The three advertising channels are, as \figureref{introduction}{ble-wifi} shows, spaced throughout the frequency spectrum, in order to minimise the chance that all three channels suffer from interference\citep{heydon2013bluetooth}.
+These advertising channels are used for discovery, connectionless information broadcast and connection initialization.
+The three advertising channels are, as \figureref{introduction}{ble-wifi} shows, spaced throughout the frequency spectrum, in order to minimise the chance that all three channels suffer from interference simultaneously \citep{heydon2013bluetooth}.
 
 
 \BLE is widely expected to be available in billions of devices within a couple of years.
 In February 2014, all of the top 10 most sold smartphones support BLE\urlref{http://www.counterpointresearch.com/top-10-smartphones-in-february-2014}{4 June 2014}.
 BLE transmitters and receivers are cheap (chips such as the rfd22301, which combines an ARM M0 core and a complete BLE system, are widely available for around \$15), and can run for years on small batteries\urlref{http://www.bluetooth.com/Pages/low-energy-tech-info.aspx}{4 June 2014}.
-BLE is designed to allow many devices to co-exist in the same area\citep{heydon2013bluetooth}, and Android and iOS devices can listen for, interact with and connect to BLE devices directly from the \app without user intervention.
+BLE is designed to allow many devices to co-exist in the same area \citep{heydon2013bluetooth}, and Android and iOS devices can listen for, interact with and connect to BLE devices directly from the \app without user intervention.
 
 The above means that it is possible to relatively cheaply fill an area with a dense network of battery powered \BLE transmitters (beacons), which can be interacted with by \apps running on hardware that most people carry with them anyway.
 This makes BLE a plausible candidate to provide indoor positioning.
@@ -49,11 +43,10 @@ This makes BLE a plausible candidate to provide indoor positioning.
 \section{Positioning}
 \define{Radiolocation} is the technique of determining a device's location by use of radio waves.
 This technique can be used to either determine location on the basis of a single measurement, or to track a device's movement over time.
-The former is called \define{\ptfp} or \define{one-shot positioning} (and in this report I will usually just call it \define{positioning}), where the latter is known as \define{tracking}.
-The obvious difference is that in tracking both information from the measurement itself and the history, possibly combined with information from other sensors, can be used, while \ptfp only has the one measurement to determine a location.
+The former is called \define{\ptfp} or \define{one-shot positioning} (and in this report I will usually just call it \define{positioning}), while the latter is known as \define{tracking}.
+In tracking both information from the measurement itself and the history, possibly combined with information from other sensors, can be used, while \ptfp only has the one measurement to determine a location.
 In this report I exclusively focus on \ptfp, however I believe that an improvement in \ptfp can also be used to improve tracking performance.
 
-\subsection{Techniques}
 Radio-positioning can broadly be done in two ways.
 Either the device to be located can send a signal, which is received by stations in the environment, which determine the device's location (and then either send it back to the device or do something else with that information).
 Alternatively, stations in the environment can send out signals, which are received by the device.
@@ -75,15 +68,15 @@ Path-loss based and RSS based positioning therefore describe the same thing in m
 \section{Previous work}
 Research into indoor positioning has a long history.
 One of the first systems was the \define{active badge} system, described in \citet{want1992active}, which uses badges with infra-red transmitters to determine one's location.
-The \define{active bat system}\citep{harter2002anatomy} and the \define{cricket system}\citep{priyantha2000cricket} use a combination of radio and ultrasound signals to do positioning.
+The \define{active bat system} \citep{harter2002anatomy} and the \define{cricket system} \citep{priyantha2000cricket} use a combination of radio and ultrasound signals to do positioning.
 \citet{bahl2000radar} introduced \wifi positioning using the RSS from \wifi access points and a fingerprint database to determine a device's location indoors.
 \citet{king2006compass} uses the compass orientation during both surveying and positioning to improve accuracy.
 \citet{castro2001probabilistic} further looked into \wifi positioning, and \citet{pandya2003indoor} suggested using Bluetooth (pre-4.0, hence not BLE) to improve indoor positioning.
 \citet{li2005method} looked at improved methods for building the fingerprint database, and \citet{shin2012enhanced} suggested improvements on the nearest-neighbour positioning algorithm.
+A completely different approach to positioning, using techniques from machine learning, can be found in \citet{battiti2002location} and \citep{ferris2007wifi}.
 
-TODO: the other positioning algorithm.... see Rob's notes
 
-\subsection{Current state of BLE positioning}
+\section{BLE based positioning}
 To my knowledge there is no published academic work on using \BLE for positioning.
 
 The Bluetooth 4.0 standard does contain a \define{proximity profile (PXP)}\urlref{https://developer.bluetooth.org/TechnologyOverview/Pages/PXP.aspx}{4 June 2014}.
@@ -96,32 +89,44 @@ Using this technology, iOS\footnote{and Android, although the system was develop
 Even though both systems allow for a certain level of location awareness, this is relative to a certain device or beacon.
 There is no evidence that either is intended to be used to determine a location more accurately than close or far from a certain device or beacon.
 
+A positioning system using BLE has the following requirements.
+\begin{itemize}
+    \item Technical: Positioning has to be fast, with few errors. In \chapterref{architecture} I explore this, and show this is possible using BLE.
+    \item Economical: It has to be cheap to install the infrastructure. In the case of BLE, ever more people carry receivers with them, and, as discussed before, simple beacons will not have to cost much more than \$20 each.
+        Even with a dense deployment on a beacon every 2 meters, this results in only \$5 per $m^2$.
+    \item Social: People may be worried about security and their privacy, both towards companies and towards the government, and therefore avoid certain positioning technologies.
+        Having a technology that can be used without anyone even knowing it was used will enhance a feeling of privacy.
+        \Chapterref{security} shows that only a little privacy has to be given up to work with BLE positioning, comparable to \wifi positioning, if the right technology is used.
+\end{itemize}
+
 \section{Material}
 The experiments in this report were done using CSR BLE beacons as transmitters and an iPhone 5 (\sectionref{rss}{mpi}), an iPad mini (\sectionref{rss}{busyroom}) and an iPhone 5S (all other sections), all running stock iOS 7, as receivers.
 The CSR beacon is a device that was developed by CSR to service as a battery powered indoor BLE beacon.
 The iPhones were chosen because smartphones are the typical devices one may want to use for positioning, the maturity of the iOS BLE implementation, and the author's previous experience with iOS.
 In addition iOS returns the channel on which a packet is received (see \sectionref{rss}{smartphone}), something Android does not; this turned out to be extremely useful in some tests.
-Both phones use a similar device with the Bluetooth/\wifi antenna in the same location in the enclosure.
-Although not extensively tested, no obvious differences in BLE reception between the two devices was observed.
 
 The iPad was chosen, because its standing form-factor and long battery life\footnote{Battery impact of listening for BLE packets was not explicitly tested in these experiments. Since an \app has to stay in the foreground to receive BLE packets at a high rate, the screen had to be kept on during scanning, which will have negatively impacted the battery; still multiple hours of capturing BLE packets was possible on the iPhone 5 without recharging.} made it more suitable for the long-term measurements in \sectionref{rss}{busyroom}.
 
-Initially a Nexus 4 and Samsung S4 running Android were used as well, however after several occasions in which the devices had not logged the requested data, they were not used any more.
+Initially a Nexus 4 and Samsung S4 running Android were used as well, however after several occasions in which the devices had not logged the requested data, their use was discontinued.
 Anecdotal evidence suggests that the BLE stack on Android had some stability issues.
 
 \section{Contributions}
 
-In this report I look at the possibilities for using \BLE for one-shot, or \ptfp, i.e.\ using a single measurement to determine one's absolute location in two or three dimensions.
-In \chapterref{rss}, I explore some of the properties of BLE that one has to keep in mind when positioning, such as the fact that there are three different advertising channels, the influence \mpi, orientation and moving objects have on the RSS, and the packet-loss of BLE advertising packets.
+In this report I look at the possibilities for using \BLE for \ptfp.
+In \chapterref{rss}, I explore some of the properties of BLE that one has to keep in mind when positioning, such as the fact that there are three different advertising channels, the influence \mpi, orientation and moving objects have on the RSS, and the packet loss of BLE advertising packets.
 \Chapterref{architecture} shows how a positioning system based on BLE beacons works in the Cambridge University Computer Lab.
-As main contribution I introduce \define{\BRP} in \sectionref{architecture}{brp}, a new algorithm to do positioning, that takes specific Bluetooth Low Energy properties in account, and which is shown to outperform Single Space Distance (SSD), a much used algorithm in signal strength based positioning, in many cases.
-Secondary contributions lie in the exploration of positioning algorithms used for \wifi positioning by \citep{bahl2000radar} and \citep{king2006compass} and their adaptation to BLE positioning.
+As main contribution I introduce \define{\BRP} in \sectionref{architecture}{brp}, a new algorithm to do positioning, that takes specific Bluetooth Low Energy properties into account, and which is shown to outperform Single Space Distance (SSD), an algorithm frequently used in signal strength based positioning, in many cases.
+Secondary contributions lie in the exploration of positioning algorithms used for \wifi positioning by \citet{bahl2000radar} and \citet{king2006compass} and their adaptation to BLE positioning.
 An additional contribution is a discussion in \chapterref{security} on how a positioning system based on BLE performs on privacy and security, compared to other positioning methods.
 
 \section{Research questions}
 I focus on the following questions in this report:
 \begin{itemize}
-    \item What are the radio propagation properties one has to take into account when trying to build a push-to-fix Received Signal Strength (RSS) based positioning system based on Bluetooth Low Energy?
-    \item Can we use the positioning methods that were developed for \wifi positioning for BLE positioning? Can I find an RSS-based push-to-fix positioning algorithm that works better than these, by taking into account some of the unique properties of BLE, mentioned in the last question.
+    \item What are the radio propagation properties one has to take into account when trying to build a push-to-fix Received Signal Strength (RSS) based positioning system based on \BLE?
+    \item Can we use the positioning methods that were developed for \wifi positioning for BLE positioning? Can I find an RSS-based push-to-fix positioning algorithm that works better than these, by taking into account some of the unique properties of BLE, mentioned in the last question?
     \item How does a BLE based positioning method compare on security and privacy to other positioning methods? What suggestions can be made to enhance privacy and security?
 \end{itemize}
+
+\section{Acknowledgements}
+Thanks goes to Dr. Robert Harle for supervising this dissertation and offering guidance when I was stuck, as well as to Dr. Ramsey Faragher for explaining some of the intricacies of \mpp and positioning algorithms.
+

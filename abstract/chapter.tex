@@ -1,0 +1,23 @@
+\newpage
+{\Huge \bf Abstract}
+\vspace{24pt} 
+
+Positioning systems that use the signal strength from a \wifi signal, are being used by smartphones to position in locations where no GPS signal is available, such as indoors.
+\BLE (BLE) is a relatively new technology, that has the potential to be used in a similar role, while being easier to deploy and has the potential to give high accuracy.
+Positioning though BLE can be done in a way that guards the user's privacy.
+
+In this dissertation I show that the signal strength for BLE signals varies a lot with small changes in the environment.
+I detected changes of 20dB+ while rotating the phone, moving it by centimetres, or having a person move between the transmitter and the phone.
+I further show a busy environment where 59\% of BLE packets are dropped; even in a quiet environment only 76\% of packets are received.
+
+I show that a \ptfp system based on \BLE can be built using the same positioning algorithms as used for \wifi, signal space distance (SSD).
+An orientation-aware variant (SSD-O) adjusted for BLE scores a 2.55m 95th percentile error. 
+The positioning algorithms I introduce, \define{\BRP} (\aBRP) and an orientation aware version \aBRP-O, perform slightly worse, but a combination of this method with the \wifi method brings the 95th percentile error down to 2.40m.
+
+If positioning is attempted after only 0.5 seconds, as opposed to 2 seconds, the \aBRP and \aBRP-O methods outperform SSD and SSD-O, having a 95th percentile error of 4.63m and 3.64m respectively, against 5.38m and 4.73m for SSD and SSD-O.
+
+Finally this dissertation compares some of the privacy, security and usability properties of BLE based positioning to other positioning methods.
+It shows that the user's privacy can be preserved in a BLE based positioning system, if implemented in the right way.
+
+\newpage
+\vspace*{\fill}

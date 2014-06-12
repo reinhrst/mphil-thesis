@@ -2,7 +2,7 @@ set xrange[150:3150]
 set yrange[-90:-30]
 set xlabel "Distance from transmitter (mm)"
 set ylabel "RSS (dB)
-set style line 1 linetype 1 linecolor rgb '#FFDDFF' pointtype 2 pointsize .7;
+set style line 1 linetype 1 linecolor rgb '#FFB0FF' pointtype 2 pointsize .7;
 set style line 2 linetype 2 linecolor rgb 'black' linewidth 1;
 set style line 12 linetype 2 linecolor rgb 'black' linewidth 4;
 set style line 3 linetype 1 linecolor rgb 'red' linewidth 3;

@@ -189,6 +189,6 @@ for run in range(RUNS):
                 pos = (x,y)
                 if positionings.has_key(pos):
                     penalties = [{"pos": p, "penalties": calc_penalties(positionings[pos],p)} for p in fingerprints]
-                    print(" ".join(["%2d %2d"%pos] + ["%5.1f %4.1f %6.2f %7.3f"%WKNN(penalties, method, pos, K) for method in METHODS]))
+                    print(" ".join(["%2d %2d"%pos] + ["%7.3f %6.3f %6.2f %7.3f"%WKNN(penalties, method, pos, K) for method in METHODS]))
 
 print("\n".join([" ".join(["%7s" % method, "%5.2f m"%(avg(errors[method]) * GRID_SIZE)] + ["%5.2f m"%(percentile(errors[method], pct) * GRID_SIZE) for pct in [25, 50, 75, 95]]) for method in METHODS]), file=sys.stderr)

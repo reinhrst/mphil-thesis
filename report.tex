@@ -1,4 +1,17 @@
-\documentclass[a4paper, 12pt]{book}
+%% 
+%% ACS project dissertation template. 
+%% 
+%% Currently designed for printing two-sided, but if you prefer to 
+%% print single-sided just remove ",twoside,openright" from the 
+%% \documentclass[] line below. 
+%%
+%%
+%%   SMH, May 2010. 
+
+
+\documentclass[a4paper,12pt,twoside,openright]{report}
+
+\usepackage{hyperref}
 \usepackage{natbib}
 \usepackage{url}
 \usepackage{graphicx}
@@ -41,6 +54,7 @@
 \newcommand{\mpids}{multi-path interference drops\xspace}
 \newcommand{\Mpi}{Multi-path interference\xspace}
 \newcommand{\BTspec}{Bluetooth 4.0 specification\xspace}
+\newcommand{\tdegree}{\textdegree\xspace}
 \newcommand{\bid}{beacon ID\xspace}
 
 \newcommand{\wordcount}[1]{
@@ -76,6 +90,9 @@
     \caption{#3}
     \label{fig:#1-#2}
 }
+\newcommand{\gnuplotnocaption}[2]{
+    \makeandinput{#1}{#2-gnuplot}
+}
 \newcommand{\makeandinput}[2]{
     \immediate\write18{make -j4 -C #1 #2.tex}
     \input{#1/#2.tex}
@@ -86,21 +103,57 @@
     \end{figure}
 }
 
-%\includeonly{architecture/chapter}
+
+%%
+%% EDIT THE BELOW TO CUSTOMIZE
+%%
+
+\def\authorname{Reinoud Elhorst\xspace}
+\def\authorcollege{Clare Hall\xspace}
+\def\authoremail{re302@claude.nl}
+\def\dissertationtitle{Push-to-fix indoor positioning using Bluetooth Low Energy}
+\def\diswordcount{\input{wordcount.tex}}
 
 \def\mySfFamily{\fontfamily{qcr}\selectfont \sffamily }
+
+\usepackage{epsfig,graphicx,parskip,setspace,tabularx,xspace} 
+
+%% START OF DOCUMENT
 \begin{document}
 
-\title{Push-to-fix indoor positioning using Bluetooth Low Energy (\input{wordcount.tex})}
-\author{Reinoud Elhorst}
-\date{\today}
-\maketitle
+
+%% FRONTMATTER (TITLE PAGE, DECLARATION, ABSTRACT, ETC) 
+\pagestyle{empty}
+\singlespacing
+\input{titlepage}
+\onehalfspacing
+\input{declaration}
+\singlespacing
+\input{abstract/chapter}
+
+\pagenumbering{roman}
+\setcounter{page}{0}
+\pagestyle{plain}
+\tableofcontents
+\listoffigures
+\listoftables
+
+\onehalfspacing
+
+%% START OF MAIN TEXT 
+
+%\includeonly{architecture/chapter}
 
 \include{introduction/chapter}
 \include{rss/chapter}
 \include{architecture/chapter}
 \include{security/chapter}
 \include{conclusion/chapter}
+
+
+
+\appendix
+\singlespacing
 
 \bibliographystyle{plainnat}
 \bibliography{bibtex.bib}

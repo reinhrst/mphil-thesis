@@ -1,28 +1,32 @@
 \chapter{Privacy, security and performance}
 \label{chap:security}
 
-\wordcount{security}
-
-\newcommand{\yes}{\(+\) }
-\newcommand{\no}{\(-\) }
-\newcommand{\maybe}{\(\pm\) }
+\newcommand{\yes}{\(+\)\xspace}
+\newcommand{\no}{\(-\)\xspace}
+\newcommand{\maybe}{\(\pm\)\xspace}
 \newcommand{\cat}[1]{\begin{em}#1\end{em}}
 
 \section{Introduction}
-In this chapter I talk about privacy, security and performance of BLE based positioning systems, and compare them to alternatives.
+In the previous chapters I showed the technical feasibility of a \ptfp system based on BLE.
+As noted in the introduction, another requirement for such a system is social acceptance.
+When location data was found to be collected on iPhones in 2011\urlref{http://radar.oreilly.com/2011/04/apple-location-tracking.html}{12 June 2014}, presumably violating user's privacy, this set of an worried reaction from the public\urlref{http://abcnews.go.com/Technology/apple-pushed-congress-answers-iphone-tracking/story?id=13426917}{12 June 2014}.
+Recent realisation that one's phone can be tracked by shop owners, has led to its own angry reactions\urlref{http://www.nytimes.com/2013/07/15/business/attention-shopper-stores-are-tracking-your-cell.html}{12 June 2014}.
+Since recent revelations on government data collection have most likely only strengthened the public's desire for privacy.
+
+In this chapter I compare the privacy, security and performance of BLE based positioning systems to that of some well-known alternatives.
 I score each method on 12 points in three categories: \yes, \no and \maybe
-The system is set up so that \yes is always more desirable than \maybe, which in turn is more desirable than \no; this may be counter intuitive in a property like "cost", where \yes means cheap and \no means expensive.
+The system is set up so that \yes is always more desirable than \maybe, which in turn is more desirable than \no.
 Many of the scores are debatable; where needed I give my arguments in the text.
-I do not intend to point to a winner: which system works best depends on the application; many properties are not mentioned here (such as whether it works indoors), and some properties may be more important to some people than others.
-The intention is that the scoring card in \tableref{security}{scoring} gives a quick overview of the strengths and weaknesses of each method.
+I feel I scored the methods objectively, but someone else may come to other results on the same points.
+The produced score card should therefore not be taken as a means to come to a single, final, score for each method; it does give a quick overview of some of the methods in use, and their strong and weak points, but a method with 5 \yes's should not be considered to always be better than one with 4 \yes's.
+Different applications have different requirements, and many subtleties, discussed in the text, are not shown in the score card.
 
 \section{Methods}
-The methods are devided in 4 categories: Non technological methods are using a paper map and street signs, and asking for directions.
+The methods are devided in 4 categories: Non-technological methods are using a paper map and street signs, and asking for directions.
 In traditional technological methods I distinguish traditional GPS, assisted GPS (A-GPS; GPS augmented with information from an internet connection), \wifi positioning.
-I further consider the three BLE positioning methods from chapter \ref{chap:positioning}, and finally the first alternative positioning method from section \ref{sec:positioning-alternative}.
-The second alternative method, ``BLE bats and crickets'', scores mostly the same as one of the three BLE methods, depending on which technology would be used for storing its database.
-It would score considerably better (\yes) on accuracy, and slightly worse (\maybe) on scalability, but giving the method its own column (or possibly three columns) would just serve to confuse things.
+I further consider RSS-based BLE positioning, such as discussed in the previous chapter, in combination with each of the fingerprint-database access methods from \sectionref{architecture}{database}, and finally the two alterative positioning methods from \sectionref{architecture}{alternative}.
 
+Many methods can be implemented in different ways; if there is a prevalent default way, I look at that one, else I assume the way that would score highest.
 \section{Scoring}
 
 \newcommand{\y}{& \cellcolor{yes} \(+\)}
@@ -30,7 +34,7 @@ It would score considerably better (\yes) on accuracy, and slightly worse (\mayb
 \newcommand{\m}{& \cellcolor{maybe} \(\pm\)}
 \newcommand{\hlinethick}{\Xhline{2\arrayrulewidth}}
 \begin{table}
-\begin{tabular}{c | r!{\vrule width 2\arrayrulewidth}c|c!{\vrule width 2\arrayrulewidth}c|c|c!{\vrule width 2\arrayrulewidth}c|c|c!{\vrule width 2\arrayrulewidth}c!{\vrule width 2\arrayrulewidth}}
+\begin{tabular}{c | r!{\vrule width 2\arrayrulewidth}c|c!{\vrule width 2\arrayrulewidth}c|c|c!{\vrule width 2\arrayrulewidth}c|c|c|c!{\vrule width 2\arrayrulewidth}c!{\vrule width 2\arrayrulewidth}}
 \multicolumn{2}{c!{\vrule width 2\arrayrulewidth}}{}
                 \h{Paper map and street signs}
                    \h{Ask for directions}
@@ -40,38 +44,41 @@ It would score considerably better (\yes) on accuracy, and slightly worse (\mayb
                                \h{BLE Global database}
                                   \h{BLE in-\app database}
                                      \h{BLE in-beacon database}
-                                        \h{Listening beacons}
+                                        \h{BLE Bats \& Crickets}
+                                           \h{Listening beacons}
 \\ \hlinethick
-\rowspan{3}{Privacy}
-& third party   \y \y \y \m \n \n \y \y \y
+\rowspan{4}{Privacy}
+& beacon owner  \y \m \y \y \y \y \n \y \y \n
 \\ \cline{2-11}
-& owner         \y \m \y \y \y \y \n \y \n
+& database owner\y \y \y \m \n \n \y \y \y \y
 \\ \cline{2-11}
-& relatable     \y \m \y \y \y \y \n \y \y
+& third party   \y \y \y \y \y \y \y \y \y \n
+\\ \cline{2-11}
+& untackable    \y \m \y \y \y \y \n \y \y \y
 \\ \hlinethick
 \rowspan{4}{Security}
-& passive DOS   \m \y \y \y \m \n \n \n \m
+& passive DOS   \m \y \y \y \m \n \n \n \n \m
 \\ \cline{2-11}
-& active DOS    \m \y \n \n \n \n \n \n \n
+& active DOS    \m \y \n \n \n \n \n \n \n \n
 \\ \cline{2-11}
-& passive spoof \m \y \y \y \m \n \n \m \m
+& passive spoof \m \y \y \y \m \n \n \n \n \m
 \\ \cline{2-11}
-& active spoof  \m \m \n \n \n \n \n \n \n
+& active spoof  \m \m \n \n \n \n \n \n \n \n
 \\ \hlinethick
 \rowspan{7}{Performance}
-& time to fix   \m \m \n \y \m \y \y \m \y
+& time to fix   \m \m \n \y \m \y \y \m \y \y
 \\ \cline{2-11}
-& accuracy      \m \m \m \m \n \m \m \m \y
+& accuracy      \m \m \m \m \n \m \m \m \y \y
 \\ \cline{2-11}
-& scalability   \y \m \y \y \y \y \y \m \m
+& scalability   \y \m \y \y \y \y \y \m \y \m
 \\ \cline{2-11}
-& affordable    \m \y \n \n \m \m \y \y \m
+& affordable    \m \y \n \n \m \m \y \y \y \m
 \\ \cline{2-11}
-& works indoors \n \y \n \n \y \y \y \y \y
+& works indoors \n \y \n \n \y \y \y \y \y \y
 \\ \cline{2-11}
-& no internet   \y \y \y \n \n \n \y \y \y
+& no internet   \y \y \y \n \n \n \y \y \y \y
 \\ \cline{2-11}
-& up-to-date    \n \y \y \y \y \y \n \y \y
+& up-to-date    \n \m \y \y \y \y \n \y \y \y
 \\ \hlinethick
 \end{tabular}
 \caption{Scores for different positioning methods}
@@ -80,29 +87,34 @@ It would score considerably better (\yes) on accuracy, and slightly worse (\mayb
 
 \subsection{Privacy}
 Privacy is the ability to do positioning without anybody else finding out that you are doing so.
-I define three levels: is your position hidden from a \cat{third party} (a centralised authority for this method of positioning; also hidden for the authorities); is your position safe for the \cat{owner} of the network; finally, are two positioning events \cat{relatable}, either one right after the other while walking around, or if one comes back the next day.
+In addition to the party for whom the positioning information is meant, there are three parties possibly involved.
+The \cat{beacon owner} is the entity that manages the beacon-network.
+The \cat{database owner} is the owner of the global database, for systems that use them.
+Not having privacy to that party, also implies losing privacy to Big Brother (NSA, GCHQ), if one believes that they monitor requests to that database.
+\cat{Third-party} is an arbitrary eaves-dropper; it implies some large-scale automatic way of doing this, not just standing somewhere and watching.
+A second, more serious, way in which privacy can be lost is if two positinings done (either in short succession or days apart) can be determined to be from the same \device; if not I determine the method to be \cat{untrackable}.
 
-The paper map scores \yes on all three points: even though somebody may see you using the map, and recognise you next time, this is the same in all methods and not considered.
-Asking for directions scores \yes on third party, however only \maybe on owner and relatable, since the person used for getting the directions, has information on your position and may recognise you next time.
+The paper map scores \yes on all four points: even though somebody may see you using the map, and recognise you next time, this is the same in all methods and not considered.
+Asking for directions scores \yes on third party and database owner, however only \maybe on beacon owner (in this context the person asked is the beacon) and untrackable, since the person used for getting the directions, has information on your position and may recognise you next time.
 
-GPS is a technique that does not require any signal from the phone to a central authority, so scores \yes on all three privacy issues.
-A-GPS on the other hand can be used in two ways: in Mobile Station Based mode, only global information is read from the internet, no revealing privacy sensitive data; in Mobile Station Assisted mode positioning data is sent to a third party location, resulting in a \maybe for third party.
-I assume, without having confirmed, that in this latter case no information that could be used to track the device over requests is being sent, resulting in a \yes on relatable.
-The owner of the GPS network is not learning the position of a A-GPS device.
-Using \wifi positioning, a third party learns the fingerprint query made (\no), but no other privacy sensitive data is shared.
+GPS is a technique that does not require any signal from the phone to a central authority, so scores \yes on all privacy issues.
+A-GPS on the other hand can be used in two ways: in Mobile Station Based mode, only global information is read from the internet, no revealing privacy sensitive data; in Mobile Station Assisted mode positioning data is sent to a central location, resulting in a \maybe for database owner.
+I assume, without having confirmed, that in this latter case no information that could be used to track the device over requests is being sent, resulting in a \yes on untrackable.
+Using \wifi positioning, a database owner learns the fingerprint query made (\no), but no other privacy sensitive data is shared.
 
 BLE with a global database has equal privacy performance to \wifi.
 An in-\app database has different characteristics.
-Since the \app used to do the positioning is owned by the owner of the beacon network, the owner has access to both the position of the phone, and can identify the same phone again next time (since it's the same \app), so on both owner and relatable this method scores \no.
-Since there is no third party involved, it scores \yes there.
-BLE with an in-beacon database does not need a third party, and downloads only ``global'' information from a beacon, giving the method two \yes s\footnote{It can be argued that because the phone is transmitting, the beacon network could try to pin-point the phone that way, giving location information to the owner. Since this is outside of the technology being described, and the owner could use many other methods to locate a person on his premises, I do not count this as a privacy property of this method.}.
-Since BLE supports a different random address per connection, a second connection is not relatable to a previous one (\yes).
+Since the \app used to do the positioning is owned by the owner of the beacon network, the owner has access to both the position of the phone, and can identify the same phone again next time (since it is the same \app), so on both owner and untackable this method scores \no.
+BLE with an in-beacon database does not need a third party, and downloads only ``global'' information from a beacon, giving the method two \yes s\footnote{It can be argued that because the phone is transmitting, the beacon network could try to pin-point the phone that way, giving location information to the owner. Since this is outside of the technology being described, and the owner could use many other methods to locate a person on his premises(e.g.\ a video camera), I do not count this as a privacy property of this method.}.
+Since BLE supports a different random address per connection, a second connection is untrackable to a previous one (\yes).
 
-Listening beacons do not use a third party(\yes), however the owner of the network knows the location of the phone (\no).
-Whether subsequent requests are relatable depends on how the position is relayed back to the phone, but it is possible to do this in a way that is secure (meaning that no eves-droppers can learn the phone's location) and unrelatable.
-The score for BLE bats and crickets is hard to give, since this system can be implemented with any of the three systems
+Bats \& Crickets score perfect on privacy, provided that the beacons broadcast their own position in the same way that was suggested for \aBRP-RPM beacons in \sectionref{architecture}{measurements-brp-rpm}.
 
-\subsection{security}
+Listening beacons do not use a global databse(\yes), however the owner of the network knows the location of the \device (\no).
+Whether subsequent requests are untrackable depends on how the position is relayed back to the phone, but it is possible to do this in a way that is secure (meaning that no eves-droppers can learn the phone's location) and unrelatable.
+However a third party could place his own positioning listening beacons (e.g.\ in the shop next-door) and learn the \device's location that way.
+
+\subsection{Security}
 The security score illustrates how resilient the technique is against an attacker.
 Two types of attacks can happen: either a denial-of-service, where the attacker makes sure that positioning fails, or a spoofing attack, where the attacker aims to let the positioning result in a different position than the actual position.
 Either type of attack can happen in two ways: active, where the attacker has to be present, or has to have a device present, to succeed, or passive, which only requires that the attacker managed to do something in the past.
@@ -116,13 +128,14 @@ This technique therefore scores \maybe on all attacks.
 Asking for directions is resilient to most attacks, however a motivated attacker could stake out a location and give a user wrong directions when asked.
 Since this last one is doubtful to succeed, the technique scores \maybe on that one, and \yes on all others.
 
-I already mentioned that I don't consider destroying or moving satellites feasible, making both GPS and A-GPS resilient to passive attacks.
+I do not consider destroying or moving satellites feasible, making both GPS and A-GPS resilient to passive attacks.
 GPS signals can be jammed\citep{grant2009gps}, or spoofed\citep{tippenhauer2011requirements}, meaning that the techniques are not secure against active attacks.
 It should be mentioned that none of the other positioning systems are resilient against active attacks, since signals can always be jammed or listened to and retransmitted on another location.
 Even though GPS is more sensitive in this respect, because the attacker's transmitter can be further away due to the weaker GPS signal, all radio-based techniques score \no on the active attacks.
 \Wifi positioning scores a \maybe for passive attacks, since the \wifi access points are usually not in a location where an attacker can disable or move them.
 
-Since BLE positioning beacons will typically be placed in more accessible locations that \wifi (because of the shorter range and the lower cost of the beacons), any BLE beacon technique will be vulnerable to passive attacks, such as stealing or moving of beacons, as well.
+Since BLE positioning beacons will typically be placed in more accessible locations than \wifi (because of the shorter range and the lower cost of the beacons), any BLE beacon technique will be vulnerable to passive attacks, such as stealing or moving of beacons, as well.
+This is equaly true for Bats \& Crickets.
 The listening beacons get a \maybe for these kinds of attacks, since they are networked and will be able to notice disruptions and possibly take appropriate corrective action.
 
 \subsection{Performance}
@@ -134,26 +147,31 @@ Less than 2 seconds scores \yes, less than a minute scores \maybe, more than a m
 \cat{Scalability} means whether a system can cope with many clients positioning at the same time.
 \cat{Affordable} talks about the cost of creating and managing the system, notably \begin{em}not\end{em} the cost of doing a single positioning.
 I assume that a user only needs a smartphone to do a positioning, and assume the costs for data traffic negligible, hence all positionings being free.
-Whether the system can be used indoors or without an internet connection being present is noted in the last two properties \cat{works indoors} and \cat{no internet}.
+Whether the system can be used indoors or without an internet connection being present is noted in the next two properties \cat{works indoors} and \cat{no internet}.
+The final property, \cat{up-to-date} illustrates the ability of the system to quickly incorporate changes.
 
 For paper map or asking directions, I estimate to have an answer within a minute, accurate to within a couple of meters.
 Both systems work without internet, but where the asking directions is cheap and works indoors, paper maps and street signs only work outdoors, and require purchase of maps and maintenance of street signs.
 Paper maps are scalable, however if thousands of people were to ask directions every day, very few would be happy to answer.
+Maps are not up-to-date, while the knowledge of a peron asked for directions may be up-to-date.
 
 GPS and A-GPS differ mostly in the time to first fix (this being much shorter with A-GPS, seconds, as opposed to GPS's 12.5 minutes), and the need for internet (only A-GPS).
-Accuracy may be slightly better with A-GPS (depending on the mode), but still not within a meter, while scalability is slightly worse for A-GPS, however not enough not to give it a \yes.
-Both systems are extremely expensive (not necessarily per user, but to launch and maintain in absolute cost) and don't work indoors since GPS signals don't penetrate buildings.
+Accuracy may be slightly better with A-GPS (depending on the mode), but still not within a meter, while scalability is slightly worse for A-GPS, however not enough not to give it a \no.
+Both systems are extremely expensive (not necessarily per user, but to launch and maintain in absolute cost) and do not work indoors since GPS signals do not penetrate buildings.
 \Wifi has a \maybe time to first fix, since scanning the \wifi channels takes more than 2 seconds on newer phones that support 5GHz \wifi.
 The accuracy is generally \no, but may be better in area of high access point density.
 The system scales well---I assume that scaling the central database to be used by millions of clients is not a large problem--- and costs a bit to maintain the central database.
-It does work indoors and doesn't work without internet.
+It does work indoors and does not work without internet.
 
 The BLE methods all give a quick time to first fix, except for in-beacon database, which needs time to download the database from the beacon, scoring \maybe.
-The accuracy of BLE positioning is a topic of active research (to which this thesis hopefully makes a contribution), but at the moment I don't see it be much better than \wifi.
-However since beacons are cheap and can be deployed in great numbers, I score this \maybe.
+The accuracy of BLE positioning is a topic of active research (to which this report hopefully makes a contribution).
+It is not per-se better than \wifi, but since beacons are cheap and can be deployed in great numbers, I score this \maybe.
 The in-beacon database may have problems scaling, since each initial positioning occupies a beacon for a while, to download the database and map, scoring \maybe on scaling, where the two other BLE technologies scale fine.
 The central database costs some money to set-up and maintain, the other two BLE technologies are cheap.
 All three work indoors, and only the central database needs an internet connection.
+Finally, the update problems with an in-\app database have been discussed in \sectionref{architecture}{in-app-database}; both other BLE methods can receive updates easily.
+
+Bats \& Crickets score very well on all points, however accuracy greatly depends on how accurate the time stamps on BLE packets are, and I have not researched this.
 
 Finally the listening beacons technology has a fast time to first fix, (possibly) high accuracy, however the technology for this high accuracy will make the beacons more expensive.
 Since one or more beacons are occupied to do the positioning, the systems scores \maybe on scaling.

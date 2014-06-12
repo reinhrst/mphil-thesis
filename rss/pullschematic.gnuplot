@@ -2,7 +2,7 @@ unset key
 unset border
 unset xtics
 unset ytics
-set xrange [.1:1]
+set xrange [.1:.9]
 set yrange [0.1:0.35]
 set size 1,.5
 

@@ -15,7 +15,7 @@ prepare: wordcount
 
 wordcount:
 	@echo "Words: " > wordcount.tex
-	@texcount chapter.tex | Grep 'Words in text' | grep -oE '[0-9]+' >> wordcount.tex
+	@texcount chapter.tex | grep '^Words' | grep -oE '[0-9]+' | st --sum >> wordcount.tex
 
 show:
 	gnuplot <(echo ";pause -1;" | cat $(PLOT) -)

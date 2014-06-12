@@ -1,15 +1,77 @@
-\chapter{Conclusion}
-\wordcount{conclusion}
+\chapter{Conclusions and further research}
+\section{Conclusions}
+In this report I show that a positioning system based on BLE beacons is possible, and allows in the test-set-up for positioning with a median error of less than one meter.
+
+\subsection{Research question 1}
+\begin{em}
+    What are the radio propagation properties one has to take into account when trying to build a push-to-fix Received Signal Strength (RSS) based positioning system based on \BLE?
+\end{em}
+The RSS for a BLE beacon does not decrease smoothly with distance to a beacon, something which would be ideal for positioning.
+Several factors are responsible for this, several I have identified.
+\Sectionref{rss}{mpi} showed that \mpi results in drops of more than 20dB in locations only several centimetres wide.
+Each of the three advertising channels shows these drops in different locations.
+
+In \sectionref{rss}{rot} I have shown that the orientation of the \device in relation to the transmitter has a large influence; sometimes turning the \device just 15\tdegree results in a 15dB RSS drop.
+Furthermore a human body between the transmitter and \device also has an influence on the RSS.
+
+\Sectionref{rss}{busyroom} showed how people moving through a room influence the RSS.
+The RSS of beacons in a busy room fluctuates as people move around; in some situations packets had a 20dB higher or lower RSS in the room with people than in the same room when it was empty.
+
+As shown in \sectionref{rss}{packet-loss}, not each BLE packet was received by the test equipment.
+For a 1Hz beacon, outside in a field, only 76\% of packets were received, while in tests with 20 beacons at 10Hz in a busy environment, this dropped to 41\%.
+
+\subsection{Research question 2}
+\begin{em}
+    Can we use the positioning methods that were developed for \wifi positioning for BLE positioning?
+    Can I find an RSS-based push-to-fix positioning algorithm that works better than these, by taking into account some of the unique properties of BLE, mentioned in the last question.
+\end{em}
+In \chapterref{architecture} I have shown how well a number of algorithms work in BLE positioning, in a room of 18 by 13 meters with 20 beacons, each transmitting at 10Hz.
+After creating a fingerprint database with 226 points, I did positionings on 670 locations, listening for BLE packets for 2 seconds on each.
+The signal space distance (SSD) method, a popular positioning method used in \wifi positioning, has an error smaller than 3.22m in 95\% of the cases.
+A variant of this method which takes direction into account, SSD-O, gave an 18\% smaller error on average, scoring 2.55m on the 95th percentile.
+In \sectionref{architecture}{brp} I introduced \BRP (\aBRP), a positioning method that takes specific radio propagation properties of \BLE into consideration, and a variant which also takes orientation into consideration, \aBRP-O.
+\aBRP performed slightly better than SSD, while \aBRP-O performed worse than SSD-O, with a 95th percentile error of 3.10m and 2.73m respectively.
+A combination of SSD and \aBRP, where the average position of both methods is taken, scored 3.06m as 95th percentile, while a similar combination of SSD-O and \aBRP-O scored 2.40m.
+
+If a shorter listening interval is taken (see \sectionref{architecture}{short-walk}), the \aBRP(-O) methods performed much better than the SSD(-O) methods, showing a 95th percentile error of 4.63m and 3.64m for \aBRP and \aBRP-O against 5.38m and 4.72m for SSD and SSD-O, when listening for 0.5 seconds.
+
+\subsection{Research question 3}
+\begin{em}
+    How does a BLE based positioning method compare on security and privacy to other positioning methods?
+    What suggestions can be made to enhance privacy and security?
+\end{em}
+In \chapterref{security} I discussed the privacy and security properties of several positioning systems, both BLE and not.
+The BLE positioning method experimented with in this report is an opportunistic method, meaning that positioning is being done solely on information received, without transmitting.
+Therefore the positioning method itself can be done in perfect privacy.
+However the method depends on a fingerprint database, which has to be obtained.
+A fingerprint database in the cloud has the same privacy as \wifi positioning; an in-\app database is unable to give privacy guarantees, while a database on the beacons themselves gives a lot of privacy guarantees.
+
+Since BLE beacons will typically be installed close to the users, they are on easily accessible spots, and therefore vulnerable to people, either maliciously or by accident, moving or removing them.
 
 \section{Further research}
-\Sectionref{rss}{packet-loss} and \chapterref{architecture} show that packet loss and unobserved beacons is a real problem in BLE positioning.
-I choose to treat unobserved beacons as if a single packet with an RSS of -105dB, just below the minimum had been observed.
-Since \sectionref{rss}{busyroom} shows that major packet loss already happens at much higher signal powers, it may make more sense to choose a higher signal strength if a beacon is not observed.
-It is probably very interesting to see how this influences the results, as well as investigate alternative methods to deal with unobserved beacons, such as ignoring a beacon altogether if it was unobserved during either surveying or positioning.
-Ideally this would be done in a location large enough that sometimes not observing a beacon is correct behaviour, because the beacon has gone out of range.
+\Ptfp using \BLE is a new field, and this report is only a first quick survey of the possibilities and problems.
+The work in this report can be extended or augmented in many directions.
+Some suggestions for further research are already mentioned in the text, especially in \sectionref{architecture}{discussion}, more are listed below.
 
-\Sectionref{architecture}{measurements} shows that the average of the position returned by SSD-O and \aBRP-O gives a better result than either one alone.
-It is interesting to see if a weighted average would improve on this, possibly one that uses the penalties calculated for both methods to determine the weights.
+\begin{itemize}
+    \item \Sectionref{rss}{busyroom} shows that RSS fluctuates a lot when people are moving around the room.
+        How do the positioning methods discussed in this report perform under those conditions?
 
+    \item All measurements in this report focussing on packet loss were done with iOS devices, which all showed the similar packet loss.
+        Packet loss influences the accuracy for positioning.
+        How high is the packet loss on other smartphones?
 
-see how the packet loss related to beaconing interval;
+    \item I chose in my experiments to use an RSS of -105dB if a beacon was not observed.
+        In light of the high packet loss, perhaps another choice, either another RSS or a completely different way of dealing with this issue) is more appropriate.
+
+    \item \aBRP does not use information about on which channel a packet was received.
+        The idea behind \aBRP however may work for individual channels as well as for the RSS of all three channels combined.
+        Does a \BRP version that looks at each channel individually have improved performance?
+
+    \item \Sectionref{architecture}{measurements} shows that the average of the position returned by SSD-O and \aBRP-O gives a better result than either one alone.
+        Another combination of the two methods may yield better results.
+
+    \item In \sectionref{architecture}{bats} I suggest an alternative BLE based positioning method.
+        Exploring its feasibility would be very interesting.
+        As a first question to answer is how accurate the timestamp of reception is for different smartphones.
+\end{itemize}
