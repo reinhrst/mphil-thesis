@@ -24,7 +24,9 @@ open: $(REPORT).pdf
 	@cat wordcount.tex
 
 clean: cleanup
-	rm -f $(REPORT).{aux,log,pdf,bbl,blg}
+	rm -f $(REPORT).{aux,log,pdf,bbl,blg,lof,lot,out,toc}
+	rm -f *-eps-converted-to.pdf
+	rm -f wordcount.tex
 
 $(TARGETS) : % : $(addsuffix %,$(CHAPTERS))
 	@echo 'Done "$*" target'
