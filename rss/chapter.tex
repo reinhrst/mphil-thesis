@@ -270,7 +270,7 @@ Even though beacon 6 was furthest away, the highest RSS of all beacons is receiv
     \begin{subfigure}[b]{0.5\textwidth}
         \gnuplotscale{rss}{busyroom-0x13}{Beacon 6}{0.55}
     \end{subfigure}
-    \caption{RSS and the number of packets seen for six beacons during different room occupation.}
+    \caption{RSS and the number of packets received for the six beacons during different room occupation.}
     \label{fig:rss-busyroom}
 \end{figure}
 
@@ -286,14 +286,14 @@ Five periods were marked using a wristwatch, these are shown in the graphs:
 \end{itemize}
 
 The two periods with an empty room, 3 and 5, are characterised in the graphs in \figureref{rss}{busyroom} by relatively low variance in RSS per channel, whereas period 2, when a lot of people are moving around, shows high variance, with periods 1 and 4 being somewhere in between.
-The differences between period 3 and 5 show the influence of the furniture on the RSS, where major differences between period 1 and 3 are most likely caused by the door being open or closed.
+The differences between period 3 and 5 likely show the influence of the furniture on the RSS, where major differences between period 1 and 3 are most likely caused by the door being open or closed.
 This latter effect is especially clear with beacons 1 and 3, which are respectively in the ceiling and on the floor behind the door.
 Another interesting effect is that only in beacon 6 all channels become lower during period 2.
 Possibly this is because for beacon 6 the line-of-sight got interrupted during period 2, while most other beacons did not have a line-of-sight, and sometimes benefit from the extra reflection possibilities of a room full of people.
 
-The beacons broadcast at 9.5Hz, however in no period more than 6 advertising packets per second are received on average.
+The beacons broadcast at 9.5Hz, however only once more than 6 advertising packets per second are received on average during a minute.
 In the next section I look into packet loss in more detail, but it is interesting to note the large differences in packet loss between channels, and between periods.
-It shows that when the RSS drops below -80dB, less (or hardly any sometimes) packets are received.
+It shows that when the RSS drops below -80dB, fewer (or sometimes hardly any) packets are received.
 
 \section{Packet loss}
 \label{sec:rss-packet-loss}
@@ -302,8 +302,8 @@ This means that a beacon advertising at 10Hz (the beaconing rate) sends 10 packe
 
 A \device typically listens on one channel at a time for BLE packet, switching between the three channels.
 We can therefore assume that, even though a 10Hz beacon sends 3 (channels) $\times$ 10 packets per second, a \device will at most receive 10 of these per second; any fewer would be considered packet loss.
-There are however many reasons why a \device may receive fewer than 10 packets, for instance:
-the signal strength is too low to be received, other transmitters interfered with the signal, the \device was temporarily not ready to receive packets, or the OS may discard a packet.
+There are many reasons why a \device may receive fewer than 10 packets, for instance:
+the signal strength is too low to be received, other transmitters interfered with the signal, the \device was temporarily not ready to receive packets, or the OS discarded a packet.
 
 As mentioned in \sectionref{rss}{smartphone}, an iOS device misses more packets if \BLE listening is active for a longer time.
 To counter this, I restart BLE listening every 10 seconds in all experiments; I do not see increased packet loss at the time of restarting.
@@ -334,7 +334,7 @@ This can be explained because packets from multiple beacons may collide when sen
 
 \Tableref{rss}{packet-loss-empirical} shows the results from the same experiment, but considers how often multiple subsequent packets from the same beacon were lost.
 It shows that with one beacon, in 0.55\% of the cases I had still not received it after three beacon intervals.
-With twenty beacons, even after 10 beacon intervals there is a 1.2\% chance that not all beacons have been observed as least once.
+With twenty beacons, after 10 beacon intervals, in 1.2\% of the cases I had not observed each beacon as least once.
 
 The tests above were done in an area with minimal additional radio interference.
 Looking at a more noisy environment, such as the one of \sectionref{rss}{busyroom}, there is 59\% packet loss, and even after 5.25 seconds, 50 beacon-interval at 9.5Hz, in 1\% of cases not all beacons have been observed.

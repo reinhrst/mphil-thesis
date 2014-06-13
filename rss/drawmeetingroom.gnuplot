@@ -11,7 +11,7 @@ set arrow 2 from 4.5,0   rto 0   ,3.5 nohead
 set arrow 3 from 0  ,0   rto 0   ,3.5 nohead
 set arrow 4 from 0  ,3.5 rto 4.5 ,0   nohead
 set arrow 5 from 4.5,0   rto -.1 ,0   nohead
-set arrow 6 from 4.4,0   rto -.4,.4*(3**.5)   nohead
+set arrow 6 from 4.4,0   rto -.4,.4*(3**.5)   lw 3 nohead
 
 set object 1 polygon from 0,3.5 rto 1.5,0 rto 0,-.7 rto -1.5,0 rto 0,.7 fs solid border rgb 'black' fc rgb 'grey'
 set object 2 polygon from 1.5,3.5 rto 1.5,0 rto 0,-.7 rto -1.5,0 rto 0,.7 fs solid border rgb 'black' fc rgb 'grey'

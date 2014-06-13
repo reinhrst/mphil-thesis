@@ -6,8 +6,9 @@ In this report I show that a positioning system based on BLE beacons is possible
 \begin{em}
     What are the radio propagation properties one has to take into account when trying to build a push-to-fix Received Signal Strength (RSS) based positioning system based on \BLE?
 \end{em}
+
 The RSS for a BLE beacon does not decrease smoothly with distance to a beacon, something which would be ideal for positioning.
-Several factors are responsible for this, several I have identified.
+I have identified several of the factors responsible for this.
 \Sectionref{rss}{mpi} showed that \mpi results in drops of more than 20dB in locations only several centimetres wide.
 Each of the three advertising channels shows these drops in different locations.
 
@@ -25,6 +26,7 @@ For a 1Hz beacon, outside in a field, only 76\% of packets were received, while 
     Can we use the positioning methods that were developed for \wifi positioning for BLE positioning?
     Can I find an RSS-based push-to-fix positioning algorithm that works better than these, by taking into account some of the unique properties of BLE, mentioned in the last question.
 \end{em}
+
 In \chapterref{architecture} I have shown how well a number of algorithms work in BLE positioning, in a room of 18 by 13 meters with 20 beacons, each transmitting at 10Hz.
 After creating a fingerprint database with 226 points, I did positionings on 670 locations, listening for BLE packets for 2 seconds on each.
 The signal space distance (SSD) method, a popular positioning method used in \wifi positioning, has an error smaller than 3.22m in 95\% of the cases.
@@ -40,6 +42,7 @@ If a shorter listening interval is taken (see \sectionref{architecture}{short-wa
     How does a BLE based positioning method compare on security and privacy to other positioning methods?
     What suggestions can be made to enhance privacy and security?
 \end{em}
+
 In \chapterref{security} I discussed the privacy and security properties of several positioning systems, both BLE and not.
 The BLE positioning method experimented with in this report is an opportunistic method, meaning that positioning is being done solely on information received, without transmitting.
 Therefore the positioning method itself can be done in perfect privacy.
@@ -62,7 +65,7 @@ Some suggestions for further research are already mentioned in the text, especia
         How high is the packet loss on other smartphones?
 
     \item I chose in my experiments to use an RSS of -105dB if a beacon was not observed.
-        In light of the high packet loss, perhaps another choice, either another RSS or a completely different way of dealing with this issue) is more appropriate.
+        In light of the high packet loss, perhaps another choice, either another RSS or a completely different way of dealing with this issue, is more appropriate.
 
     \item \aBRP does not use information about on which channel a packet was received.
         The idea behind \aBRP however may work for individual channels as well as for the RSS of all three channels combined.
@@ -73,5 +76,5 @@ Some suggestions for further research are already mentioned in the text, especia
 
     \item In \sectionref{architecture}{bats} I suggest an alternative BLE based positioning method.
         Exploring its feasibility would be very interesting.
-        As a first question to answer is how accurate the timestamp of reception is for different smartphones.
+        As a first question to answer is how accurate the timestamp of reception of a BLE packet is for different smartphones.
 \end{itemize}

@@ -72,7 +72,7 @@ The data gathered from this experiment allows me to compare six different positi
 \section{Positioning methods}
 
 All positioning in this report is being done through the weighted k-nearest-neighbour algorithm.
-Provided a set of distances for a single measurement to each surveyed point, ordered by distance, the average of the points belonging to the first $k$ distances is calculated, weighted by $\frac{1}{distance+\epsilon}$, to avoid division by 0; an $\epsilon$ of 0.01 was empirically found to work well.
+Provided a set of distances for a single measurement to each surveyed point, ordered by distance, the average of the points belonging to the first $k$ distances is calculated, weighted by $\frac{1}{distance+\epsilon}$.
 The difference between the compared algorithms, is in how the distances are calculated, the first two steps of the nearest-neighbour algorithm as described in \sectionref{architecture}{rss-based-positioning}.
 All experiments are run with $k = 5$; this value was empirically found to work well.
 
